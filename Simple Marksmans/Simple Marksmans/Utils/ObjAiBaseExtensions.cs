@@ -77,5 +77,10 @@ namespace Simple_Marksmans.Utils
         {
             return unit.Buffs.Any(b => b.IsActive && b.DisplayName.ToLowerInvariant() == "sheen");
         }
+
+        public static bool IsImmobile(this AIHeroClient target)
+        {
+            return !target.IsRecalling() && !target.HasBuffOfType(BuffType.Stun) && !target.HasBuffOfType(BuffType.Snare) && !target.HasBuffOfType(BuffType.Knockup) && !target.HasBuffOfType(BuffType.Knockback) && !target.HasBuffOfType(BuffType.Flee) && !target.HasBuffOfType(BuffType.Fear) && !target.HasBuffOfType(BuffType.Charm) && !target.HasBuffOfType(BuffType.Suppression) && !target.HasBuffOfType(BuffType.Taunt);
+        }
     }
 }

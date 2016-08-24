@@ -38,8 +38,7 @@ namespace Simple_Marksmans.Plugins.Twitch.Modes
     {
         public static void Execute()
         {
-            var laneMinions = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.Instance.Position,
-    Player.Instance.GetAutoAttackRange() + 250).ToList();
+            var laneMinions = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.Instance.Position, W.Range).ToList();
 
             if (!laneMinions.Any() &&
                 !(!Settings.LaneClear.EnableIfNoEnemies ||

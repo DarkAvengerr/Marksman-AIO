@@ -43,7 +43,6 @@ namespace Simple_Marksmans.Plugins.Twitch.Modes
             if (!jungleMinions.Any())
                 return;
 
-
             if (E.IsReady() && Settings.JungleClear.UseE && Player.Instance.ManaPercent >= Settings.JungleClear.EMinMana)
             {
                 if (

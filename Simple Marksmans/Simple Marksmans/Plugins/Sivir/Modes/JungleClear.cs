@@ -26,12 +26,10 @@
 //  </summary>
 //  --------------------------------------------------------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Sivir.Modes
 {
@@ -39,6 +37,26 @@ namespace Simple_Marksmans.Plugins.Sivir.Modes
     {
         public static void Execute()
         {
+            var jungleMinions = EntityManager.MinionsAndMonsters.GetJungleMonsters(Player.Instance.Position, Player.Instance.GetAutoAttackRange()).ToList();
+
+            if (!jungleMinions.Any())
+                return;
+
+            if (Q.IsReady() && Settings.LaneClear.UseQInJungleClear &&
+                Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ)
+            {
+                var pred = EntityManager.MinionsAndMonsters.GetLineFarmLocation(jungleMinions, 100, 1200,
+                    Player.Instance.Position.To2D());
+
+                if(pred.HitNumber > 1)
+                    Q.Cast(pred.CastPosition);
+            }
+
+            if (!IsPostAttack || !W.IsReady() || !Settings.LaneClear.UseWInJungleClear || !(Player.Instance.ManaPercent >= Settings.LaneClear.WMinMana))
+                return;
+
+            if (jungleMinions.Count > 1)
+                W.Cast();
         }
     }
 }

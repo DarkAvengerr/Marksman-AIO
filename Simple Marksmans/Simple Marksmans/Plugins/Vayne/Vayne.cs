@@ -804,7 +804,7 @@ namespace Simple_Marksmans.Plugins.Vayne
 
         protected static class Damage
         {
-            public static float[] QBonusDamage { get; } = { 0, 0.3f, 0.35f, 0.40f, 0.45f, 0.5f };
+            public static float[] QBonusDamage { get; } = { 0, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f };
             public static int[] WMinimumDamage { get; } = {0, 40, 60, 80, 100, 120};
             public static float[] WPercentageDamage { get; } = {0, 0.06f, 0.075f, 0.09f, 0.105f, 0.12f};
             public static int[] EDamage { get; } = {0, 45, 80, 115, 150, 185};

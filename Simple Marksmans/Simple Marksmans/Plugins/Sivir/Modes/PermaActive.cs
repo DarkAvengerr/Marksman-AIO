@@ -26,12 +26,12 @@
 //  </summary>
 //  --------------------------------------------------------------------------------------------------------------------
 #endregion
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Sivir.Modes
 {
@@ -39,6 +39,23 @@ namespace Simple_Marksmans.Plugins.Sivir.Modes
     {
         public static void Execute()
         {
+            if (!IsPostAttack && Q.IsReady() && Settings.Harass.AutoHarass)
+            {
+                foreach (var immobileEnemy in EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(Q.Range) && x.IsImmobile()).OrderByDescending(TargetSelector.GetPriority).ThenBy(x=> Q.GetPrediction(x).HitChancePercent))
+                {
+                    Console.WriteLine("[DEBUG] Casting Q on immobile target {0}", immobileEnemy.Hero);
+                    Q.Cast(Q.GetPrediction(immobileEnemy).CastPosition);
+                }
+            }
+
+            if (!IsPostAttack && Q.IsReady() && Settings.Combo.UseQ)
+            {
+                foreach (var immobileEnemy in EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(Q.Range) && (x.Health - IncomingDamage.GetIncomingDamage(x)) < Player.Instance.GetSpellDamage(x, SpellSlot.Q)).OrderByDescending(TargetSelector.GetPriority).ThenBy(x => Q.GetPrediction(x).HitChancePercent))
+                {
+                    Console.WriteLine("[DEBUG] Casting Q on {0} to killsteal", immobileEnemy.Hero);
+                    Q.Cast(Q.GetPrediction(immobileEnemy).CastPosition);
+                }
+            }
         }
     }
 }

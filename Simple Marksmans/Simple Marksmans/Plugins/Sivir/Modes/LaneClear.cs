@@ -26,7 +26,10 @@
 //  </summary>
 //  --------------------------------------------------------------------------------------------------------------------
 #endregion
+
+using System.Linq;
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Sivir.Modes
 {
@@ -34,6 +37,32 @@ namespace Simple_Marksmans.Plugins.Sivir.Modes
     {
         public static void Execute()
         {
+            var laneMinions = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.Instance.Position,
+                    Q.Range).ToList();
+
+            if (!laneMinions.Any() && !(!Settings.LaneClear.EnableIfNoEnemies ||
+                                        Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) >
+                                        Settings.LaneClear.AllowedEnemies))
+                return;
+
+            if (Q.IsReady() && Settings.LaneClear.UseQInLaneClear &&
+                Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ)
+            {
+                var farmLocation = EntityManager.MinionsAndMonsters.GetLineFarmLocation(laneMinions, 100, 1200);
+
+                if (farmLocation.HitNumber > 2)
+                {
+                    Q.Cast(farmLocation.CastPosition);
+                }
+            }
+
+            if (!IsPostAttack || !W.IsReady() || !Settings.LaneClear.UseWInLaneClear || !(Player.Instance.ManaPercent >= Settings.LaneClear.WMinMana))
+                return;
+
+            if (laneMinions.Count(x => x.Distance(Player.Instance) < Player.Instance.GetAutoAttackRange()) != 0 && laneMinions.Count > 3)
+            {
+                W.Cast();
+            }
         }
     }
 }

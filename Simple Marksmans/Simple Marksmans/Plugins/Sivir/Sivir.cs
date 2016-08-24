@@ -30,7 +30,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using EloBuddy;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Constants;
@@ -39,6 +38,8 @@ using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
 using SharpDX;
 using Simple_Marksmans.Utils;
+using EloBuddy.SDK.Rendering;
+using EloBuddy.SDK.Utils;
 
 namespace Simple_Marksmans.Plugins.Sivir
 {
@@ -51,13 +52,14 @@ namespace Simple_Marksmans.Plugins.Sivir
 
         private static Menu ComboMenu { get; set; }
         private static Menu HarassMenu { get; set; }
-        private static Menu JungleClearMenu { get; set; }
         private static Menu LaneClearMenu { get; set; }
-        private static Menu MiscMenu { get; set; }
         private static Menu DrawingsMenu { get; set; }
         private static Menu SpellBlockerMenu { get; set; }
 
         private static readonly ColorPicker[] ColorPicker;
+        private static bool _changingRangeScan;
+
+        public static bool IsPostAttack { get; private set; }
 
         static Sivir()
         {
@@ -75,14 +77,13 @@ namespace Simple_Marksmans.Plugins.Sivir
 
             BlockableSpells.Initialize();
             BlockableSpells.OnBlockableSpell += BlockableSpells_OnBlockableSpell;
+            Game.OnPostTick += args => IsPostAttack = false;
+            Orbwalker.OnPostAttack += (s, a) => IsPostAttack = true;
         }
 
         private static void BlockableSpells_OnBlockableSpell(AIHeroClient sender,
             BlockableSpells.OnBlockableSpellEventArgs args)
         {
-            Console.WriteLine("[DEBUG] Sender: {0} | Slot : {1} | IsAutoAttack : {2} | Enabled : {3}", sender.Hero, args.SpellSlot,
-               args.IsAutoAttack, args.Enabled);
-
             if (!args.Enabled || !E.IsReady())
                 return;
 
@@ -94,6 +95,9 @@ namespace Simple_Marksmans.Plugins.Sivir
 
         protected override void OnDraw()
         {
+            if (_changingRangeScan)
+                Circle.Draw(Color.White,
+                    LaneClearMenu["Plugins.Sivir.LaneClearMenu.ScanRange"].Cast<Slider>().CurrentValue, Player.Instance);
         }
         protected override void OnInterruptible(AIHeroClient sender, InterrupterEventArgs args)
         {
@@ -105,7 +109,83 @@ namespace Simple_Marksmans.Plugins.Sivir
 
         protected override void CreateMenu()
         {
+            ComboMenu = MenuManager.Menu.AddSubMenu("Combo");
+            ComboMenu.AddGroupLabel("Combo mode settings for Sivir addon");
+
+            ComboMenu.AddLabel("Boomerang Blade (Q) settings :");
+            ComboMenu.Add("Plugins.Sivir.ComboMenu.UseQ", new CheckBox("Use Q"));
+            ComboMenu.AddSeparator(5);
+
+            ComboMenu.AddLabel("Ricochet (W) settings :");
+            ComboMenu.Add("Plugins.Sivir.ComboMenu.UseW", new CheckBox("Use W"));
+            ComboMenu.AddSeparator(5);
+
+            HarassMenu = MenuManager.Menu.AddSubMenu("Harass");
+            HarassMenu.AddGroupLabel("Harass mode settings for Sivir addon");
+
+            HarassMenu.AddLabel("Boomerang Blade (Q) settings :");
+            HarassMenu.Add("Plugins.Sivir.HarassMenu.UseQ", new CheckBox("Use Q"));
+            HarassMenu.Add("Plugins.Sivir.HarassMenu.AutoHarass", new CheckBox("Auto harass immobile targets"));
+            HarassMenu.Add("Plugins.Sivir.HarassMenu.MinManaQ", new Slider("Min mana percentage ({0}%) to use Q", 80, 1));
+            HarassMenu.AddSeparator(5);
+
+            HarassMenu.AddLabel("Ricochet (W) settings :");
+            HarassMenu.Add("Plugins.Sivir.HarassMenu.UseW", new CheckBox("Use W"));
+            HarassMenu.Add("Plugins.Sivir.HarassMenu.MinManaW", new Slider("Min mana percentage ({0}%) to use W", 80, 1));
+            HarassMenu.AddSeparator(5);
+
+            LaneClearMenu = MenuManager.Menu.AddSubMenu("Clear");
+            LaneClearMenu.AddGroupLabel("Clear mode settings for Sivir addon");
+
+            LaneClearMenu.AddLabel("Basic settings :");
+            LaneClearMenu.Add("Plugins.Sivir.LaneClearMenu.EnableLCIfNoEn", new CheckBox("Enable lane clear only if no enemies nearby"));
+            var scanRange = LaneClearMenu.Add("Plugins.Sivir.LaneClearMenu.ScanRange", new Slider("Range to scan for enemies", 1500, 300, 2500));
+            scanRange.OnValueChange += (a, b) =>
+            {
+                _changingRangeScan = true;
+                Core.DelayAction(() =>
+                {
+                    if (!scanRange.IsLeftMouseDown && !scanRange.IsMouseInside)
+                    {
+                        _changingRangeScan = false;
+                    }
+                }, 2000);
+            };
+            LaneClearMenu.Add("Plugins.Sivir.LaneClearMenu.AllowedEnemies", new Slider("Allowed enemies amount", 1, 0, 5));
+            LaneClearMenu.AddSeparator(5);
+
+            LaneClearMenu.AddLabel("Boomerang Blade (Q) settings :");
+            LaneClearMenu.Add("Plugins.Sivir.LaneClearMenu.UseQInLaneClear", new CheckBox("Use Q in Lane Clear"));
+            LaneClearMenu.Add("Plugins.Sivir.LaneClearMenu.UseQInJungleClear", new CheckBox("Use Q in Jungle Clear"));
+            LaneClearMenu.Add("Plugins.Sivir.LaneClearMenu.MinManaQ", new Slider("Min mana percentage ({0}%) to use Q", 80, 1));
+            LaneClearMenu.AddSeparator(5);
+
+            LaneClearMenu.AddLabel("Ricochet (W) settings :");
+            LaneClearMenu.Add("Plugins.Sivir.LaneClearMenu.UseWInLaneClear", new CheckBox("Use W in Lane Clear"));
+            LaneClearMenu.Add("Plugins.Sivir.LaneClearMenu.UseWInJungleClear", new CheckBox("Use W in Jungle Clear"));
+            LaneClearMenu.Add("Plugins.Sivir.LaneClearMenu.MinManaW", new Slider("Min mana percentage ({0}%) to use W", 80, 1));
+
             BlockableSpells.BuildMenu();
+
+            DrawingsMenu = MenuManager.Menu.AddSubMenu("Drawings");
+            DrawingsMenu.AddGroupLabel("Drawings settings for Sivir addon");
+
+            DrawingsMenu.AddLabel("Basic settings :");
+            DrawingsMenu.Add("Plugins.Sivir.DrawingsMenu.DrawSpellRangesWhenReady",
+                new CheckBox("Draw spell ranges only when they are ready"));
+            DrawingsMenu.AddSeparator(5);
+
+            DrawingsMenu.AddLabel("Boomerang Blade (Q) settings :");
+            DrawingsMenu.Add("Plugins.Sivir.DrawingsMenu.DrawQ", new CheckBox("Draw Q range", false));
+            DrawingsMenu.Add("Plugins.Twitch.DrawingsMenu.DrawQColor", new CheckBox("Change color", false)).OnValueChange += (a, b) =>
+            {
+                if (!b.NewValue)
+                    return;
+
+                ColorPicker[0].Initialize(System.Drawing.Color.Aquamarine);
+                a.CurrentValue = false;
+            };
+            DrawingsMenu.AddSeparator(5);
         }
 
         protected override void PermaActive()
@@ -141,6 +221,330 @@ namespace Simple_Marksmans.Plugins.Sivir
         protected override void Flee()
         {
             Modes.Flee.Execute();
+        }
+
+        internal static class Settings
+        {
+            internal static class Combo
+            {
+                public static bool UseQ
+                {
+                    get
+                    {
+                        return ComboMenu?["Plugins.Sivir.ComboMenu.UseQ"] != null &&
+                               ComboMenu["Plugins.Sivir.ComboMenu.UseQ"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (ComboMenu?["Plugins.Sivir.ComboMenu.UseQ"] != null)
+                            ComboMenu["Plugins.Sivir.ComboMenu.UseQ"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+
+                public static bool UseW
+                {
+                    get
+                    {
+                        return ComboMenu?["Plugins.Sivir.ComboMenu.UseW"] != null &&
+                               ComboMenu["Plugins.Sivir.ComboMenu.UseW"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (ComboMenu?["Plugins.Sivir.ComboMenu.UseW"] != null)
+                            ComboMenu["Plugins.Sivir.ComboMenu.UseW"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+            }
+
+            internal static class Harass
+            {
+                public static bool UseQ
+                {
+                    get
+                    {
+                        return HarassMenu?["Plugins.Sivir.HarassMenu.UseQ"] != null &&
+                               HarassMenu["Plugins.Sivir.HarassMenu.UseQ"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (HarassMenu?["Plugins.Sivir.HarassMenu.UseQ"] != null)
+                            HarassMenu["Plugins.Sivir.HarassMenu.UseQ"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+
+                public static bool AutoHarass
+                {
+                    get
+                    {
+                        return HarassMenu?["Plugins.Sivir.HarassMenu.AutoHarass"] != null &&
+                               HarassMenu["Plugins.Sivir.HarassMenu.AutoHarass"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (HarassMenu?["Plugins.Sivir.HarassMenu.AutoHarass"] != null)
+                            HarassMenu["Plugins.Sivir.HarassMenu.AutoHarass"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+
+                public static int MinManaQ
+                {
+                    get
+                    {
+                        if (HarassMenu?["Plugins.Sivir.HarassMenu.MinManaQ"] != null)
+                            return HarassMenu["Plugins.Sivir.HarassMenu.MinManaQ"].Cast<Slider>().CurrentValue;
+
+                        Logger.Error("Couldn't get Plugins.Sivir.HarassMenu.MinManaQ menu item value.");
+                        return 0;
+                    }
+                    set
+                    {
+                        if (HarassMenu?["Plugins.Sivir.HarassMenu.MinManaQ"] != null)
+                            HarassMenu["Plugins.Sivir.HarassMenu.MinManaQ"].Cast<Slider>().CurrentValue = value;
+                    }
+                }
+
+                public static bool UseW
+                {
+                    get
+                    {
+                        return HarassMenu?["Plugins.Sivir.HarassMenu.UseW"] != null &&
+                               HarassMenu["Plugins.Sivir.HarassMenu.UseW"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (HarassMenu?["Plugins.Sivir.HarassMenu.UseW"] != null)
+                            HarassMenu["Plugins.Sivir.HarassMenu.UseW"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+
+                public static int MinManaW
+                {
+                    get
+                    {
+                        if (HarassMenu?["Plugins.Sivir.HarassMenu.MinManaW"] != null)
+                            return HarassMenu["Plugins.Sivir.HarassMenu.MinManaW"].Cast<Slider>().CurrentValue;
+
+                        Logger.Error("Couldn't get Plugins.Sivir.HarassMenu.MinManaW menu item value.");
+                        return 0;
+                    }
+                    set
+                    {
+                        if (HarassMenu?["Plugins.Sivir.HarassMenu.MinManaW"] != null)
+                            HarassMenu["Plugins.Sivir.HarassMenu.MinManaW"].Cast<Slider>().CurrentValue = value;
+                    }
+                }
+            }
+
+            internal static class LaneClear
+            {
+                public static bool EnableIfNoEnemies
+                {
+                    get
+                    {
+                        return LaneClearMenu?["Plugins.Sivir.LaneClearMenu.EnableLCIfNoEn"] != null &&
+                               LaneClearMenu["Plugins.Sivir.LaneClearMenu.EnableLCIfNoEn"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.EnableLCIfNoEn"] != null)
+                            LaneClearMenu["Plugins.Sivir.LaneClearMenu.EnableLCIfNoEn"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+
+                public static int ScanRange
+                {
+                    get
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.ScanRange"] != null)
+                            return LaneClearMenu["Plugins.Sivir.LaneClearMenu.ScanRange"].Cast<Slider>().CurrentValue;
+
+                        Logger.Error("Couldn't get Plugins.Sivir.LaneClearMenu.ScanRange menu item value.");
+                        return 0;
+                    }
+                    set
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.ScanRange"] != null)
+                            LaneClearMenu["Plugins.Sivir.LaneClearMenu.ScanRange"].Cast<Slider>().CurrentValue = value;
+                    }
+                }
+
+                public static int AllowedEnemies
+                {
+                    get
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.AllowedEnemies"] != null)
+                            return
+                                LaneClearMenu["Plugins.Sivir.LaneClearMenu.AllowedEnemies"].Cast<Slider>().CurrentValue;
+
+                        Logger.Error("Couldn't get Plugins.Sivir.LaneClearMenu.AllowedEnemies menu item value.");
+                        return 0;
+                    }
+                    set
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.AllowedEnemies"] != null)
+                            LaneClearMenu["Plugins.Sivir.LaneClearMenu.AllowedEnemies"].Cast<Slider>().CurrentValue =
+                                value;
+                    }
+                }
+
+                public static bool UseQInLaneClear
+                {
+                    get
+                    {
+                        return LaneClearMenu?["Plugins.Sivir.LaneClearMenu.UseQInLaneClear"] != null &&
+                               LaneClearMenu["Plugins.Sivir.LaneClearMenu.UseQInLaneClear"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.UseQInLaneClear"] != null)
+                            LaneClearMenu["Plugins.Sivir.LaneClearMenu.UseQInLaneClear"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+
+                public static bool UseQInJungleClear
+                {
+                    get
+                    {
+                        return LaneClearMenu?["Plugins.Sivir.LaneClearMenu.UseQInJungleClear"] != null &&
+                               LaneClearMenu["Plugins.Sivir.LaneClearMenu.UseQInJungleClear"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.UseQInJungleClear"] != null)
+                            LaneClearMenu["Plugins.Sivir.LaneClearMenu.UseQInJungleClear"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+
+                public static int MinManaQ
+                {
+                    get
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.MinManaQ"] != null)
+                            return LaneClearMenu["Plugins.Sivir.LaneClearMenu.MinManaQ"].Cast<Slider>().CurrentValue;
+
+                        Logger.Error("Couldn't get Plugins.Sivir.LaneClearMenu.MinManaQ menu item value.");
+                        return 0;
+                    }
+                    set
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.MinManaQ"] != null)
+                            LaneClearMenu["Plugins.Sivir.LaneClearMenu.MinManaQ"].Cast<Slider>().CurrentValue = value;
+                    }
+                }
+
+                public static bool UseWInLaneClear
+                {
+                    get
+                    {
+                        return LaneClearMenu?["Plugins.Sivir.LaneClearMenu.UseWInLaneClear"] != null &&
+                               LaneClearMenu["Plugins.Sivir.LaneClearMenu.UseWInLaneClear"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.UseWInLaneClear"] != null)
+                            LaneClearMenu["Plugins.Sivir.LaneClearMenu.UseWInLaneClear"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+                public static bool UseWInJungleClear
+                {
+                    get
+                    {
+                        return LaneClearMenu?["Plugins.Sivir.LaneClearMenu.UseWInJungleClear"] != null &&
+                               LaneClearMenu["Plugins.Sivir.LaneClearMenu.UseWInJungleClear"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.UseWInJungleClear"] != null)
+                            LaneClearMenu["Plugins.Sivir.LaneClearMenu.UseWInJungleClear"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+
+                public static int WMinMana
+                {
+                    get
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.MinManaW"] != null)
+                            return LaneClearMenu["Plugins.Sivir.LaneClearMenu.MinManaW"].Cast<Slider>().CurrentValue;
+
+                        Logger.Error("Couldn't get Plugins.Sivir.LaneClearMenu.MinManaW menu item value.");
+                        return 0;
+                    }
+                    set
+                    {
+                        if (LaneClearMenu?["Plugins.Sivir.LaneClearMenu.MinManaW"] != null)
+                            LaneClearMenu["Plugins.Sivir.LaneClearMenu.MinManaW"].Cast<Slider>().CurrentValue = value;
+                    }
+                }
+            }
+
+            internal static class Misc
+            {
+
+            }
+
+            internal static class Drawings
+            {
+                public static bool DrawSpellRangesWhenReady
+                {
+                    get
+                    {
+                        return DrawingsMenu?["Plugins.Sivir.DrawingsMenu.DrawSpellRangesWhenReady"] != null &&
+                               DrawingsMenu["Plugins.Sivir.DrawingsMenu.DrawSpellRangesWhenReady"].Cast<CheckBox>()
+                                   .CurrentValue;
+                    }
+                    set
+                    {
+                        if (DrawingsMenu?["Plugins.Sivir.DrawingsMenu.DrawSpellRangesWhenReady"] != null)
+                            DrawingsMenu["Plugins.Sivir.DrawingsMenu.DrawSpellRangesWhenReady"].Cast<CheckBox>()
+                                .CurrentValue
+                                = value;
+                    }
+                }
+                
+                public static bool DrawQ
+                {
+                    get
+                    {
+                        return DrawingsMenu?["Plugins.Sivir.DrawingsMenu.DrawQ"] != null &&
+                               DrawingsMenu["Plugins.Sivir.DrawingsMenu.DrawQ"].Cast<CheckBox>().CurrentValue;
+                    }
+                    set
+                    {
+                        if (DrawingsMenu?["Plugins.Sivir.DrawingsMenu.DrawQ"] != null)
+                            DrawingsMenu["Plugins.Sivir.DrawingsMenu.DrawQ"].Cast<CheckBox>().CurrentValue = value;
+                    }
+                }
+            }
         }
 
         public static class BlockableSpells
@@ -328,6 +732,7 @@ namespace Simple_Marksmans.Plugins.Sivir
 
                 SpellBlockerMenu = MenuManager.Menu.AddSubMenu("Spell blocker");
                 SpellBlockerMenu.AddGroupLabel("Spell blocker settings for Sivir addon");
+                SpellBlockerMenu.Add("Plugins.Sivir.SpellBlockerMenu.Enabled", new CheckBox("Enable Spell blocker"));
 
                 SpellBlockerMenu.AddLabel("Spell blocker enabled for :");
 
@@ -347,7 +752,7 @@ namespace Simple_Marksmans.Plugins.Sivir
 
             public static bool IsEnabledFor(AIHeroClient unit, SpellSlot slot)
             {
-                return SpellBlockerMenu?["Plugins.Sivir.SpellBlockerMenu.Enabled." + unit.ChampionName + "." + slot] != null &&
+                return SpellBlockerMenu?["Plugins.Sivir.SpellBlockerMenu.Enabled"] != null && SpellBlockerMenu["Plugins.Sivir.SpellBlockerMenu.Enabled"].Cast<CheckBox>().CurrentValue && SpellBlockerMenu?["Plugins.Sivir.SpellBlockerMenu.Enabled." + unit.ChampionName + "." + slot] != null &&
                        SpellBlockerMenu["Plugins.Sivir.SpellBlockerMenu.Enabled." + unit.ChampionName + "." + slot].Cast<CheckBox>()
                            .CurrentValue;
             }
@@ -534,7 +939,7 @@ namespace Simple_Marksmans.Plugins.Sivir
             private class BlockableSpellData
             {
                 public Champion ChampionName { get; }
-                public bool NeedsAdditionalLogics { get; set; } = false;
+                public bool NeedsAdditionalLogics { get; set; }
                 public string AdditionalBuffName { get; set; }
                 public SpellSlot SpellSlot { get; }
                 public string SpellName { get; }

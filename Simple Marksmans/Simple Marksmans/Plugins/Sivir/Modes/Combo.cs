@@ -26,7 +26,12 @@
 //  </summary>
 //  --------------------------------------------------------------------------------------------------------------------
 #endregion
+
+using System;
 using EloBuddy;
+using EloBuddy.SDK;
+using EloBuddy.SDK.Enumerations;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Sivir.Modes
 {
@@ -34,6 +39,45 @@ namespace Simple_Marksmans.Plugins.Sivir.Modes
     {
         public static void Execute()
         {
+            if (Q.IsReady() && Settings.Combo.UseQ)
+            {
+                var target = TargetSelector.GetTarget(Q.Range, DamageType.Physical);
+
+                if (target != null && !target.HasUndyingBuffA() && !target.HasSpellShield())
+                {
+                    var qPrediction = Q.GetPrediction(target);
+
+                    if(qPrediction.HitChance >= HitChance.Medium && target.TotalHealthWithShields() < Player.Instance.GetAutoAttackDamage(target, true) * 2 + Player.Instance.GetSpellDamage(target, SpellSlot.Q))
+                    {
+                        Console.WriteLine("[DEBUG] Casting Q on {0} variant 1", target.Hero);
+                        Q.Cast(qPrediction.CastPosition);
+                    }
+                    else if (qPrediction.HitChance >= HitChance.High && Player.Instance.Mana - 60 > 100 && Player.Instance.IsInRange(target, Player.Instance.GetAutoAttackRange()))
+                    {
+                        Console.WriteLine("[DEBUG] Casting Q on {0} variant 2", target.Hero);
+                        Q.Cast(qPrediction.CastPosition);
+                    }
+                }
+            }
+
+            if (!W.IsReady() || !Settings.Combo.UseW || !IsPostAttack)
+                return;
+
+            {
+                var target = TargetSelector.GetTarget(Player.Instance.GetAutoAttackRange(), DamageType.Physical);
+
+                if (target != null &&
+                    target.Health - IncomingDamage.GetIncomingDamage(target) <
+                    Player.Instance.GetAutoAttackDamage(target, true))
+                {
+                    Console.WriteLine("[DEBUG] Casting W on {0} variant 1", target.Hero);
+                    W.Cast();
+                } else if (target != null && target.Distance(Player.Instance) < Player.Instance.GetAutoAttackRange() - 100)
+                {
+                    Console.WriteLine("[DEBUG] Casting W on {0} variant 2", target.Hero);
+                    W.Cast();
+                }
+            }
         }
     }
 }
