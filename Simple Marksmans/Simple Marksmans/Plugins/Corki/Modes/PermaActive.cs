@@ -45,7 +45,7 @@ namespace Simple_Marksmans.Plugins.Corki.Modes
                 }
             }
 
-            if (R.IsReady() && Settings.Misc.AutoHarassEnabled && Player.Instance.Spellbook.GetSpell(SpellSlot.R).Ammo >= Settings.Misc.MinStacksToUseR && !HasSheenBuff)
+            if (R.IsReady() && Settings.Misc.AutoHarassEnabled && !Player.Instance.IsRecalling() && Player.Instance.Spellbook.GetSpell(SpellSlot.R).Ammo >= Settings.Misc.MinStacksToUseR && !HasSheenBuff)
             {
                 if (HasBigRMissile && !(HasBigRMissile && Settings.Misc.UseBigBomb))
                     return;

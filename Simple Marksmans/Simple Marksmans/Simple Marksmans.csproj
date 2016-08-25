@@ -243,6 +243,7 @@
     <Compile Include="Plugins\Vayne\Vayne.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\ChampionTracker.cs" />
     <Compile Include="Utils\ColorPicker.cs" />
     <Compile Include="Utils\DamageIndicator.cs" />
     <Compile Include="Utils\Enumerators.cs" />

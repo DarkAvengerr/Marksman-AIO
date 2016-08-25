@@ -26,7 +26,11 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
+
+using System;
+using System.Linq;
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Ashe.Modes
 {
@@ -34,6 +38,48 @@ namespace Simple_Marksmans.Plugins.Ashe.Modes
     {
         public static void Execute()
         {
+            var laneMinions =
+                EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.Instance.Position,
+                    W.Range).ToList();
+
+            if (!laneMinions.Any() &&
+                !(!Settings.LaneClear.EnableIfNoEnemies ||
+                  Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) >
+                  Settings.LaneClear.AllowedEnemies))
+                return;
+
+            if (Q.IsReady() && Settings.LaneClear.UseQInLaneClear && Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ && IsPreAttack && laneMinions.Count > 3)
+            {
+                Q.Cast();
+            }
+
+            if (W.IsReady() && Settings.LaneClear.UseWInLaneClear && Player.Instance.ManaPercent >= Settings.LaneClear.MinManaW && laneMinions.Count > 3)
+            {
+                foreach (var objAiMinion in laneMinions)
+                {
+                    var poly = new Geometry.Polygon.Sector(Player.Instance.Position, Game.CursorPos,
+                        (float) (Math.PI/180*40), 950, 9).Points.ToArray();
+
+                    for (var i = 1; i < 10; i++)
+                    {
+                        var qPred = Prediction.Position.PredictLinearMissile(objAiMinion, 1100, 20, 25, 1200, 0,
+                            Player.Instance.Position.Extend(poly[i], 20).To3D());
+
+                        if (qPred.CollisionObjects.Any())
+                        {
+                            var xd = EntityManager.MinionsAndMonsters.GetLineFarmLocation(
+                                qPred.GetCollisionObjects<Obj_AI_Minion>(), 120, 1200);
+
+                            if (xd.HitNumber <= 2)
+                                continue;
+
+                            W.Cast(xd.CastPosition);
+                            break;
+                        }
+                    }
+                }
+            }
+
         }
     }
 }

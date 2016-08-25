@@ -27,11 +27,11 @@
 // //  ---------------------------------------------------------------------
 #endregion
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
+using EloBuddy.SDK.Enumerations;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Ashe.Modes
 {
@@ -39,6 +39,46 @@ namespace Simple_Marksmans.Plugins.Ashe.Modes
     {
         public static void Execute()
         {
+            if (R.IsReady() && Settings.Combo.UseR && EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget(Settings.Combo.RMaximumRange) && x.HealthPercent < 50 && !x.HasSpellShield() && !x.HasUndyingBuffA()))
+            {
+                foreach (var target in EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(Settings.Combo.RMaximumRange)).OrderBy(TargetSelector.GetPriority))
+                {
+                    var incomingDamage = IncomingDamage.GetIncomingDamage(target);
+
+                    var damage = incomingDamage + Player.Instance.GetSpellDamage(target, SpellSlot.R) - 25;
+
+                    if (target.Hero == Champion.Blitzcrank && !target.HasBuff("BlitzcrankManaBarrierCD") && !target.HasBuff("ManaBarrier"))
+                    {
+                        damage -= target.Mana / 2;
+                    }
+
+                    if (target.Distance(Player.Instance) > Player.Instance.GetAutoAttackRange() + 200 &&
+                        target.TotalHealthWithShields(true) < damage)
+                    {
+                        var rPrediction = R.GetPrediction(target);
+
+                        if (rPrediction.HitChance >= HitChance.High || rPrediction.HitChance >= HitChance.Collision)
+                        {
+                            if (rPrediction.HitChance == HitChance.Collision)
+                            {
+                                var polygon = new Geometry.Polygon.Rectangle(Player.Instance.Position,
+                                    rPrediction.CastPosition, 120);
+                                
+                                if (!EntityManager.Heroes.Enemies.Any(x => polygon.IsInside(x)))
+                                {
+                                    Console.WriteLine("[DEBUG] Casting R on : {0} to killsteal ! v 1", target.Hero);
+                                    R.Cast(rPrediction.CastPosition);
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("[DEBUG] Casting R on : {0} to killsteal ! v 1", target.Hero);
+                                R.Cast(rPrediction.CastPosition);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

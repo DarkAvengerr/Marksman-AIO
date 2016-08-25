@@ -27,11 +27,9 @@
 // //  ---------------------------------------------------------------------
 #endregion
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Ashe.Modes
 {
@@ -39,6 +37,35 @@ namespace Simple_Marksmans.Plugins.Ashe.Modes
     {
         public static void Execute()
         {
+            var jungleMinions = EntityManager.MinionsAndMonsters.GetJungleMonsters(Player.Instance.Position, Player.Instance.GetAutoAttackRange()).ToList();
+
+            if (!jungleMinions.Any())
+                return;
+
+            string[] allowedMonsters =
+{
+                "SRU_Gromp", "SRU_Blue", "SRU_Red", "SRU_Razorbeak", "SRU_Krug", "SRU_Murkwolf", "Sru_Crab",
+                "SRU_RiftHerald", "SRU_Dragon", "SRU_Baron"
+            };
+
+            if (Q.IsReady() && Settings.LaneClear.UseQInJungleClear && Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ && jungleMinions.Count(x => allowedMonsters.Contains(x.BaseSkinName, StringComparer.CurrentCultureIgnoreCase)) >= 1)
+            {
+                Q.Cast();
+            }
+
+            if (W.IsReady() && Settings.LaneClear.UseWInJungleClear &&
+                Player.Instance.ManaPercent >= Settings.LaneClear.MinManaW)
+            {
+                var minion =
+                    jungleMinions.FirstOrDefault(
+                        x => allowedMonsters.Contains(x.BaseSkinName, StringComparer.CurrentCultureIgnoreCase));
+
+                if (minion != null && minion.Health > Player.Instance.GetAutoAttackDamage(minion, true) * 2)
+                {
+                    var pred = W.GetPrediction(minion);
+                    W.Cast(pred.CastPosition);
+                }
+            }
         }
     }
 }

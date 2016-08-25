@@ -26,12 +26,10 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using EloBuddy;
+using EloBuddy.SDK;
+using EloBuddy.SDK.Enumerations;
 
 namespace Simple_Marksmans.Plugins.Ashe.Modes
 {
@@ -39,6 +37,20 @@ namespace Simple_Marksmans.Plugins.Ashe.Modes
     {
         public static void Execute()
         {
+            if (!W.IsReady() || !Settings.Harass.UseW || !(Player.Instance.ManaPercent > Settings.Harass.MinManaForW))
+                return;
+
+            var target = TargetSelector.GetTarget(W.Range, DamageType.Physical);
+
+            if (target == null)
+                return;
+
+            var wPrediction = GetWPrediction(target);
+
+            if (wPrediction != null && wPrediction.HitChance >= HitChance.High)
+            {
+                W.Cast(wPrediction.CastPosition);
+            }
         }
     }
 }

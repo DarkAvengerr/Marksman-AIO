@@ -26,9 +26,12 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
+
+using System.Linq;
 using EloBuddy;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Ashe.Modes
 {
@@ -36,20 +39,80 @@ namespace Simple_Marksmans.Plugins.Ashe.Modes
     {
         public static void Execute()
         {
-            /*var t = TargetSelector.GetTarget(W.Range, DamageType.Magical);
-
-            if (t != null)
+            if (Q.IsReady() && IsPreAttack && Settings.Combo.UseQ)
             {
-                var pred = Prediction.Position.PredictConeSpell(t, 1200, 57, 250, 2000, Player.Instance.ServerPosition);
+                var target = TargetSelector.GetTarget(Player.Instance.GetAutoAttackRange(), DamageType.Physical);
 
-                Chat.Print(pred.HitChance);
-
-                if (pred.HitChance == HitChance.High)
+                if (target != null)
                 {
-                    W.Cast(pred.CastPosition);
-
+                    if (EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget(Player.Instance.GetAutoAttackRange() - 50)))
+                    {
+                        Q.Cast();
+                    }
                 }
-            }*/
+            }
+
+            if (W.IsReady() && Settings.Combo.UseW && Player.Instance.Mana - 50 > 100)
+            {
+                var target = TargetSelector.GetTarget(W.Range, DamageType.Physical);
+
+                if (target != null)
+                {
+                    var wPrediction = GetWPrediction(target);
+
+                    if (wPrediction != null && wPrediction.HitChance >= HitChance.High)
+                    {
+                        W.Cast(wPrediction.CastPosition);
+                    }
+                }
+            }
+
+            if (E.IsReady() && Settings.Combo.UseE)
+            {
+                foreach (var source in EntityManager.Heroes.Enemies.Where(x=> x.IsUserInvisibleFor(500)))
+                {
+                    var data = source.GetVisibilityTrackerData();
+
+                    if (data.LastHealthPercent < 25 && data.LastPosition.Distance(Player.Instance) < 1000)
+                    {
+                        E.Cast(data.LastPath);
+                    }
+                }
+            }
+
+            if (R.IsReady() && Settings.Combo.UseR)
+            {
+                var target = TargetSelector.GetTarget(Settings.Combo.RMaximumRange, DamageType.Physical);
+
+                if (target != null && !target.IsUnderTurret() && !target.HasSpellShield() && !target.HasUndyingBuffA() && target.Distance(Player.Instance) > Settings.Combo.RMinimumRange && target.Health - IncomingDamage.GetIncomingDamage(target) > 100)
+                {
+                    var damage = 0f;
+
+                    if (Player.Instance.Mana > 200 && target.IsValidTarget(W.Range))
+                    {
+                        damage = Player.Instance.GetSpellDamage(target, SpellSlot.R) +
+                                 Player.Instance.GetSpellDamage(target, SpellSlot.W) +
+                                 Player.Instance.GetAutoAttackDamage(target)*4;
+                    }
+                    else if (Player.Instance.Mana > 150 && target.IsValidTarget(W.Range))
+                        damage = Player.Instance.GetSpellDamage(target, SpellSlot.R) +
+                                 Player.Instance.GetAutoAttackDamage(target)*4;
+
+                    var rPrediction = R.GetPrediction(target);
+
+                    if (damage > target.TotalHealthWithShields() && (rPrediction.HitChance >= HitChance.High || rPrediction.HitChance == HitChance.Collision))
+                    {
+                        if (rPrediction.HitChance == HitChance.Collision)
+                        {
+                            var polygon = new Geometry.Polygon.Rectangle(Player.Instance.Position, rPrediction.CastPosition, 120);
+                            if (!EntityManager.Heroes.Enemies.Any(x => polygon.IsInside(x)))
+                            {
+                                R.Cast(rPrediction.CastPosition);
+                            }
+                        } else R.Cast(rPrediction.CastPosition);
+                    }
+                }
+            }
         }
     }
 }
