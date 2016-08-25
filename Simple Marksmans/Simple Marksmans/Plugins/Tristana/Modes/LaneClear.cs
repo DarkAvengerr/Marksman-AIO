@@ -73,7 +73,7 @@ namespace Simple_Marksmans.Plugins.Tristana.Modes
                 }
             }
 
-            if (!E.IsReady() || !Settings.LaneClear.UseEInLaneClear ||
+            if (!E.IsReady() || Player.Instance.IsUnderHisturret() || !Settings.LaneClear.UseEInLaneClear ||
                 !(Player.Instance.ManaPercent >= Settings.LaneClear.MinManaE))
                 return;
 
