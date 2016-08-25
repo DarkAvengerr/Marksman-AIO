@@ -1,30 +1,30 @@
 ﻿#region Licensing
-//  --------------------------------------------------------------------------------------------------------------------
-//  <copyright file="Vayne.cs" company="EloBuddy">
-// 
-//  Marksman AIO
-// 
-//  Copyright (C) 2016 Krystian Tenerowicz
-// 
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-// 
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-// 
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see http://www.gnu.org/licenses/. 
-//  </copyright>
-//  <summary>
-// 
-//  Email: geroelobuddy@gmail.com
-//  PayPal: geroelobuddy@gmail.com
-//  </summary>
-//  --------------------------------------------------------------------------------------------------------------------
+// //  ---------------------------------------------------------------------
+// //  <copyright file="Vayne.cs" company="EloBuddy">
+// // 
+// //  Marksman AIO
+// // 
+// //  Copyright (C) 2016 Krystian Tenerowicz
+// // 
+// //  This program is free software: you can redistribute it and/or modify
+// //  it under the terms of the GNU General Public License as published by
+// //  the Free Software Foundation, either version 3 of the License, or
+// //  (at your option) any later version.
+// // 
+// //  This program is distributed in the hope that it will be useful,
+// //  but WITHOUT ANY WARRANTY; without even the implied warranty of
+// //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// //  GNU General Public License for more details.
+// // 
+// //  You should have received a copy of the GNU General Public License
+// //  along with this program.  If not, see http://www.gnu.org/licenses/. 
+// //  </copyright>
+// //  <summary>
+// // 
+// //  Email: geroelobuddy@gmail.com
+// //  PayPal: geroelobuddy@gmail.com
+// //  </summary>
+// //  ---------------------------------------------------------------------
 #endregion
 using System;
 using System.Drawing;
@@ -163,13 +163,15 @@ namespace Simple_Marksmans.Plugins.Vayne
 
         private static void Orbwalker_OnPreAttack(AttackableUnit target, Orbwalker.PreAttackArgs args)
         {
-            if (HasInquisitionBuff && Settings.Misc.NoAaWhileStealth && Game.Time * 1000 - _lastQCastTime < Settings.Misc.NoAaDelay)
+            if (!HasInquisitionBuff || !Settings.Misc.NoAaWhileStealth ||
+                !(Game.Time*1000 - _lastQCastTime < Settings.Misc.NoAaDelay))
+                return;
+
+            var client = target as AIHeroClient;
+
+            if (client != null && client.Health > Player.Instance.GetAutoAttackDamage(client, true)*3)
             {
-                if (target is AIHeroClient &&
-                    target.Health > Player.Instance.GetAutoAttackDamage((AIHeroClient) target, true)*3)
-                {
-                    args.Process = false;
-                }
+                args.Process = false;
             }
         }
 
@@ -178,7 +180,9 @@ namespace Simple_Marksmans.Plugins.Vayne
             if (!E.IsReady() || !sender.IsValidTarget(E.Range))
                 return;
 
-            E.Cast(sender);
+            if (args.Delay == 0)
+                E.Cast(sender);
+            else Core.DelayAction(() => E.Cast(sender), args.Delay);
 
             Misc.PrintInfoMessage("Interrupting " + sender.ChampionName + "'s " + args.SpellName);
 
@@ -189,7 +193,9 @@ namespace Simple_Marksmans.Plugins.Vayne
         {
             if (E.IsReady() && sender.IsValidTarget(E.Range) && args.End.Distance(Player.Instance) < 500)
             {
-                E.Cast(sender);
+                if (args.Delay == 0)
+                    E.Cast(sender);
+                else Core.DelayAction(() => E.Cast(sender), args.Delay);
 
                 Console.WriteLine("[DEBUG] OnGapcloser | Champion : {0} | SpellSlot : {1}", sender.ChampionName, args.SpellSlot);
             }

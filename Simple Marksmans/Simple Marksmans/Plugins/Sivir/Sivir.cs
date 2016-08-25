@@ -1,32 +1,31 @@
 ﻿#region Licensing
-//  --------------------------------------------------------------------------------------------------------------------
-//  <copyright file="Sivir.cs" company="EloBuddy">
-// 
-//  Marksman AIO
-// 
-//  Copyright (C) 2016 Krystian Tenerowicz
-// 
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-// 
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-// 
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see http://www.gnu.org/licenses/. 
-//  </copyright>
-//  <summary>
-// 
-//  Email: geroelobuddy@gmail.com
-//  PayPal: geroelobuddy@gmail.com
-//  </summary>
-//  --------------------------------------------------------------------------------------------------------------------
+// //  ---------------------------------------------------------------------
+// //  <copyright file="Sivir.cs" company="EloBuddy">
+// // 
+// //  Marksman AIO
+// // 
+// //  Copyright (C) 2016 Krystian Tenerowicz
+// // 
+// //  This program is free software: you can redistribute it and/or modify
+// //  it under the terms of the GNU General Public License as published by
+// //  the Free Software Foundation, either version 3 of the License, or
+// //  (at your option) any later version.
+// // 
+// //  This program is distributed in the hope that it will be useful,
+// //  but WITHOUT ANY WARRANTY; without even the implied warranty of
+// //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// //  GNU General Public License for more details.
+// // 
+// //  You should have received a copy of the GNU General Public License
+// //  along with this program.  If not, see http://www.gnu.org/licenses/. 
+// //  </copyright>
+// //  <summary>
+// // 
+// //  Email: geroelobuddy@gmail.com
+// //  PayPal: geroelobuddy@gmail.com
+// //  </summary>
+// //  ---------------------------------------------------------------------
 #endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,7 +79,7 @@ namespace Simple_Marksmans.Plugins.Sivir
             Game.OnPostTick += args => IsPostAttack = false;
             Orbwalker.OnPostAttack += (s, a) => IsPostAttack = true;
         }
-
+        
         private static void BlockableSpells_OnBlockableSpell(AIHeroClient sender,
             BlockableSpells.OnBlockableSpellEventArgs args)
         {
@@ -98,6 +97,9 @@ namespace Simple_Marksmans.Plugins.Sivir
             if (_changingRangeScan)
                 Circle.Draw(Color.White,
                     LaneClearMenu["Plugins.Sivir.LaneClearMenu.ScanRange"].Cast<Slider>().CurrentValue, Player.Instance);
+
+            if (Settings.Drawings.DrawQ && (!Settings.Drawings.DrawSpellRangesWhenReady || Q.IsReady()))
+                Circle.Draw(ColorPicker[0].Color, Q.Range, Player.Instance);
         }
         protected override void OnInterruptible(AIHeroClient sender, InterrupterEventArgs args)
         {
@@ -185,7 +187,6 @@ namespace Simple_Marksmans.Plugins.Sivir
                 ColorPicker[0].Initialize(System.Drawing.Color.Aquamarine);
                 a.CurrentValue = false;
             };
-            DrawingsMenu.AddSeparator(5);
         }
 
         protected override void PermaActive()
@@ -223,7 +224,7 @@ namespace Simple_Marksmans.Plugins.Sivir
             Modes.Flee.Execute();
         }
 
-        internal static class Settings
+        protected static class Settings
         {
             internal static class Combo
             {
@@ -547,7 +548,7 @@ namespace Simple_Marksmans.Plugins.Sivir
             }
         }
 
-        public static class BlockableSpells
+        protected static class BlockableSpells
         {
             private static readonly HashSet<BlockableSpellData> BlockableSpellsHashSet = new HashSet<BlockableSpellData>
             {
@@ -735,6 +736,7 @@ namespace Simple_Marksmans.Plugins.Sivir
                 SpellBlockerMenu.Add("Plugins.Sivir.SpellBlockerMenu.Enabled", new CheckBox("Enable Spell blocker"));
 
                 SpellBlockerMenu.AddLabel("Spell blocker enabled for :");
+                SpellBlockerMenu.AddSeparator(5);
 
                 foreach (var enemy in EntityManager.Heroes.Enemies.Where(x=> BlockableSpellsHashSet.Any(k=>k.ChampionName == x.Hero)))
                 {
@@ -902,7 +904,7 @@ namespace Simple_Marksmans.Plugins.Sivir
                             },
                                 (int)
                                     Math.Max(
-                                        (enemy.Distance(Player.Instance) / args.SData.MissileSpeed * 1000) - 400,
+                                        enemy.Distance(Player.Instance) / args.SData.MissileSpeed * 1000 - 400,
                                         0));
                         }
                         else if (enemy.Hero == Champion.Zed && args.Slot == blockableSpellData.SpellSlot &&
