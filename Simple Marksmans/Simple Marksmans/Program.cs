@@ -26,6 +26,7 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
+
 using EloBuddy.SDK.Events;
 
 namespace Simple_Marksmans

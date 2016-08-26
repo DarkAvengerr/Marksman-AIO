@@ -26,12 +26,10 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Jhin.Modes
 {
@@ -39,7 +37,30 @@ namespace Simple_Marksmans.Plugins.Jhin.Modes
     {
         public static void Execute()
         {
-            Chat.Print("JungleClear mode !");
+            var jungleMinions = EntityManager.MinionsAndMonsters.GetJungleMonsters(Player.Instance.Position, Player.Instance.GetAutoAttackRange()).ToList();
+
+            if (!jungleMinions.Any())
+                return;
+
+            if (Q.IsReady() && jungleMinions.Count > 1 && Settings.LaneClear.UseQInJungleClear &&
+                Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ)
+            {
+                var minion = jungleMinions.OrderBy(unit => unit.Health).FirstOrDefault();
+                if (minion != null)
+                {
+                    Q.Cast(minion);
+                }
+            }
+
+            if (!W.IsReady() || jungleMinions.Count <= 1 || !Settings.LaneClear.UseWInJungleClear ||
+                !(Player.Instance.ManaPercent >= Settings.LaneClear.MinManaW))
+                return;
+
+            var farmLocation = EntityManager.MinionsAndMonsters.GetLineFarmLocation(jungleMinions, 40, 2500, Player.Instance.Position.To2D());
+            if (farmLocation.HitNumber > 1)
+            {
+                W.Cast(farmLocation.CastPosition);
+            }
         }
     }
 }

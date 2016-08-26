@@ -184,8 +184,8 @@ namespace Simple_Marksmans.Utils
                 const int height = 9;
                 const int width = 104;
 
-                var xOffset = 2;
-                var yOffset = 9;
+                int xOffset;
+                int yOffset;
 
                 switch (unit.Hero)
                 {
@@ -197,6 +197,11 @@ namespace Simple_Marksmans.Utils
                         xOffset = -9;
                         yOffset = -5;
                         break;
+                    default:
+                        xOffset = 2;
+                        yOffset = 9;
+                        break;
+
                 }
 
                 var damageAfter = Math.Max(0, unit.Health - DamageDelegate(unit)) / unit.MaxHealth;

@@ -26,6 +26,7 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
+
 using System.Linq;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
@@ -94,7 +95,7 @@ namespace Simple_Marksmans
 
                 foreach (var interruptibleSpell in interruptibleSpells)
                 {
-                    var healthPercent = 0;
+                    int healthPercent;
 
                     switch (interruptibleSpell.DangerLevel)
                     {
@@ -107,23 +108,16 @@ namespace Simple_Marksmans
                         case DangerLevel.Low:
                             healthPercent = 50;
                             break;
+                        default:
+                            healthPercent = 0;
+                            break;
                     }
 
-                    InterrupterMenu.AddLabel("[" + interruptibleSpell.SpellSlot + "] " + interruptibleSpell.SpellName + " | Danger Level : "+ interruptibleSpell.DangerLevel);
-                    InterrupterMenu.Add(
-                        "MenuManager.InterrupterMenu." + enemy.ChampionName + "." + interruptibleSpell.SpellSlot + ".Delay",
-                        new Slider("Delay", 0, 0, 500));
-                    InterrupterMenu.Add(
-                        "MenuManager.InterrupterMenu." + enemy.ChampionName + "." + interruptibleSpell.SpellSlot + ".Hp",
-                        new Slider("Only if I'm below under {0} % of my HP", healthPercent));
-                    InterrupterMenu.Add(
-                        "MenuManager.InterrupterMenu." + enemy.ChampionName + "." + interruptibleSpell.SpellSlot +
-                        ".Enemies",
-                        new Slider("Only if {0} or less enemies are near", 5, 1, 5));
-                    InterrupterMenu.Add(
-                        "MenuManager.InterrupterMenu." + enemy.ChampionName + "." + interruptibleSpell.SpellSlot +
-                        ".Enabled",
-                        new CheckBox("Enabled"));
+                    InterrupterMenu.AddLabel("[" + interruptibleSpell.SpellSlot + "] " + interruptibleSpell.SpellName + " | Danger Level : " + interruptibleSpell.DangerLevel);
+                    InterrupterMenu.Add("MenuManager.InterrupterMenu." + enemy.ChampionName + "." + interruptibleSpell.SpellSlot + ".Delay", new Slider("Delay", 0, 0, 500));
+                    InterrupterMenu.Add("MenuManager.InterrupterMenu." + enemy.ChampionName + "." + interruptibleSpell.SpellSlot + ".Hp", new Slider("Only if I'm below under {0} % of my HP", healthPercent));
+                    InterrupterMenu.Add("MenuManager.InterrupterMenu." + enemy.ChampionName + "." + interruptibleSpell.SpellSlot + ".Enemies", new Slider("Only if {0} or less enemies are near", 5, 1, 5));
+                    InterrupterMenu.Add("MenuManager.InterrupterMenu." + enemy.ChampionName + "." + interruptibleSpell.SpellSlot + ".Enabled", new CheckBox("Enabled"));
 
                     InterruptibleSpellsFound++;
                 }
@@ -132,9 +126,7 @@ namespace Simple_Marksmans
 
         public static void BuildAntiGapcloserMenu()
         {
-            if (
-                !EntityManager.Heroes.Enemies.Any(
-                    x => Gapcloser.GapCloserList.Exists(e => e.ChampName == x.ChampionName)))
+            if (!EntityManager.Heroes.Enemies.Any(x => Gapcloser.GapCloserList.Exists(e => e.ChampName == x.ChampionName)))
             {
                 return;
             }
@@ -142,15 +134,11 @@ namespace Simple_Marksmans
             GapcloserMenu = Menu.AddSubMenu("Anti-Gapcloser");
             GapcloserMenu.AddGroupLabel("Global settings");
             GapcloserMenu.Add("MenuManager.GapcloserMenu.Enabled", new CheckBox("Anti-Gapcloser Enabled"));
-            GapcloserMenu.Add("MenuManager.GapcloserMenu.OnlyInCombo",
-                new CheckBox("Active only in Combo mode", false));
+            GapcloserMenu.Add("MenuManager.GapcloserMenu.OnlyInCombo", new CheckBox("Active only in Combo mode", false));
             GapcloserMenu.AddSeparator(15);
 
-            foreach (
-                var enemy in
-                    EntityManager.Heroes.Enemies.Where(
-                        x => Gapcloser.GapCloserList.Exists(e => e.ChampName == x.ChampionName))
-                )
+            foreach (var enemy in
+                EntityManager.Heroes.Enemies.Where(x => Gapcloser.GapCloserList.Exists(e => e.ChampName == x.ChampionName)))
             {
                 var gapclosers = Gapcloser.GapCloserList.FindAll(e => e.ChampName == enemy.ChampionName);
 
@@ -162,20 +150,10 @@ namespace Simple_Marksmans
                 foreach (var gapcloser in gapclosers)
                 {
                     GapcloserMenu.AddLabel("[" + gapcloser.SpellSlot + "] " + gapcloser.SpellName);
-                    GapcloserMenu.Add(
-                        "MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot + ".Delay",
-                        new Slider("Delay", 0, 0, 500));
-                    GapcloserMenu.Add(
-                        "MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot + ".Hp",
-                        new Slider("Only if I'm below under {0} % of my HP", 100));
-                    GapcloserMenu.Add(
-                        "MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot +
-                        ".Enemies",
-                        new Slider("Only if {0} or less enemies are near", 5, 1, 5));
-                    GapcloserMenu.Add(
-                        "MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot +
-                        ".Enabled",
-                        new CheckBox("Enabled"));
+                    GapcloserMenu.Add("MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot + ".Delay", new Slider("Delay", 0, 0, 500));
+                    GapcloserMenu.Add("MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot + ".Hp", new Slider("Only if I'm below under {0} % of my HP", 100));
+                    GapcloserMenu.Add("MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot + ".Enemies", new Slider("Only if {0} or less enemies are near", 5, 1, 5));
+                    GapcloserMenu.Add("MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot + ".Enabled", new CheckBox("Enabled"));
 
                     GapclosersFound++;
                 }
@@ -238,5 +216,4 @@ namespace Simple_Marksmans
         //        }
         //    }
     }
-
 }

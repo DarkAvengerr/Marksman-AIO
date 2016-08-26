@@ -39,9 +39,9 @@ namespace Simple_Marksmans.Utils
     {
         private static float _lastTick;
 
-        static ChampionTracker()
+        public static void Initialize()
         {
-            foreach (var aiHeroClient in EntityManager.Heroes.AllHeroes)
+            foreach (var aiHeroClient in EntityManager.Heroes.Enemies)
             {
                 ChampionVisibility.Add(new VisibilityTracker {Hero = aiHeroClient});
             }
@@ -54,19 +54,19 @@ namespace Simple_Marksmans.Utils
 
         private static void Game_OnTick(EventArgs args)
         {
-            if(Game.Time * 1000 - _lastTick < 100)
+            if(Game.Time * 1000 - _lastTick < 25)
                 return;
 
             foreach (var visibilityTracker in ChampionVisibility.Where(x=> Game.Time * 1000 - x.LastVisibleGameTime * 1000 < 1000))
             {
-                foreach (var unit in EntityManager.Heroes.AllHeroes.Where(
+                foreach (var unit in EntityManager.Heroes.Enemies.Where(
                         x => x.Hero == visibilityTracker.Hero.Hero && !visibilityTracker.Hero.IsDead && !visibilityTracker.Hero.IsHPBarRendered))
                 {
                     OnLoseVisibility?.Invoke(null, new OnLoseVisibilityEventArgs(unit, visibilityTracker.LastVisibleGameTime, visibilityTracker.LastPosition));
                 }
             }
 
-            foreach (var aiHeroClient in EntityManager.Heroes.AllHeroes.Where(x => !x.IsDead && x.IsHPBarRendered))
+            foreach (var aiHeroClient in EntityManager.Heroes.Enemies.Where(x => !x.IsDead && x.IsHPBarRendered))
             {
                 var hero = ChampionVisibility.FirstOrDefault(x => x.Hero.NetworkId == aiHeroClient.NetworkId);
 
@@ -93,7 +93,7 @@ namespace Simple_Marksmans.Utils
         {
             var hero = ChampionVisibility.FirstOrDefault(x => Game.Time*1000 - x.LastVisibleGameTime*1000 > time && Game.Time * 1000 - x.LastVisibleGameTime * 1000 < 4000 && x.Hero.NetworkId == unit.NetworkId);
 
-            return hero != null && EntityManager.Heroes.AllHeroes.Any(x => x.NetworkId == hero.Hero.NetworkId && !x.IsDead && !x.IsHPBarRendered);
+            return hero != null && EntityManager.Heroes.Enemies.Any(x => x.NetworkId == hero.Hero.NetworkId && !x.IsDead && !x.IsHPBarRendered);
         }
 
         public class VisibilityTracker

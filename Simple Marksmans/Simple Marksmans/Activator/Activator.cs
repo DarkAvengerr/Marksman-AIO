@@ -33,17 +33,16 @@ using EloBuddy;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
-using SharpDX;
 using Simple_Marksmans.Activator.Items;
 using Simple_Marksmans.Interfaces;
 using Simple_Marksmans.Utils;
-using Simple_Marksmans.Utils.PermaShow;
 
 namespace Simple_Marksmans.Activator
 {
     internal class Activator
     {
         private static int _lastScanTick;
+        private static float _lastTick;
 
         public static Menu ActivatorMenu { get; set; }
 
@@ -160,11 +159,15 @@ namespace Simple_Marksmans.Activator
             if (!MenuManager.MenuValues["Activator.Enable"])
                 return;
 
-            if (Game.Time*1000 > _lastScanTick + 10000)
+            if ((Game.Time * 1000 - _lastTick) < 60)
+            {
+                return;
+            }
+            if (Game.Time * 1000 > _lastScanTick + 10000)
             {
                 ScanForItems();
             }
-            
+
             foreach (var enumValues in Enum.GetValues(typeof(ItemsEnum)).Cast<ItemsEnum>())
             {
                 if (MenuManager.MenuValues["Activator.PotionsAndElixirsMenu.UsePotions"] && Items[enumValues] != null && Items[enumValues].ItemType == ItemType.Potion &&
@@ -220,11 +223,15 @@ namespace Simple_Marksmans.Activator
                     }
                 }
             }
+
+            _lastTick = Game.Time * 1000;
         }
 
         private static void Orbwalker_OnPostAttack(AttackableUnit target, EventArgs args)
         {
-            if (!(target is AIHeroClient) || !MenuManager.MenuValues["Activator.Enable"])
+            if (!(target is AIHeroClient) || !MenuManager.MenuValues["Activator.Enable"] ||
+                Items[ItemsEnum.ElixirofIron] == null || Items[ItemsEnum.ElixirofSorcery] == null ||
+                Items[ItemsEnum.ElixirofWrath] == null)
                 return;
 
             Items[ItemsEnum.ElixirofIron]?.UseItem();

@@ -102,6 +102,8 @@ namespace Simple_Marksmans.Utils
                     case (uint) WindowMessages.LeftButtonUp:
                         _isMoving = false;
                         break;
+                    default:
+                        return;
                 }
             }
 
@@ -321,7 +323,6 @@ namespace Simple_Marksmans.Utils
 
             private void GameOnWndProc(WndEventArgs args)
             {
-                // ReSharper disable once SwitchStatementMissingSomeCases
                 switch (args.Msg)
                 {
                     case (uint) WindowMessages.LeftButtonDown:
@@ -331,6 +332,8 @@ namespace Simple_Marksmans.Utils
                     case (uint) WindowMessages.LeftButtonUp:
                         _isMoving = false;
                         break;
+                    default:
+                        return;
                 }
             }
 

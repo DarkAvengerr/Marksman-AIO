@@ -43,7 +43,7 @@ namespace Simple_Marksmans.Plugins.Ashe.Modes
                 return;
 
             string[] allowedMonsters =
-{
+            {
                 "SRU_Gromp", "SRU_Blue", "SRU_Red", "SRU_Razorbeak", "SRU_Krug", "SRU_Murkwolf", "Sru_Crab",
                 "SRU_RiftHerald", "SRU_Dragon", "SRU_Baron"
             };

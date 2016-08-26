@@ -65,7 +65,7 @@ namespace Simple_Marksmans.Plugins.Ashe
             Q = new Spell.Active(SpellSlot.Q);
             W = new Spell.Skillshot(SpellSlot.W, 1225, SkillShotType.Cone)
             {
-                AllowedCollisionCount = 0,
+                AllowedCollisionCount = -1,
                 CastDelay = 250,
                 ConeAngleDegrees = (int) (Math.PI/180*40),
                 Speed = 2000,
@@ -100,28 +100,28 @@ namespace Simple_Marksmans.Plugins.Ashe
 
         protected override void OnInterruptible(AIHeroClient sender, InterrupterEventArgs args)
         {
-            if (R.IsReady() && (args.DangerLevel == DangerLevel.Medium || args.DangerLevel == DangerLevel.High) && Player.Instance.Mana > 200 &&
-                sender.IsValidTarget(Settings.Misc.MaxInterrupterRange))
+            if (!R.IsReady() || (args.DangerLevel != DangerLevel.Medium && args.DangerLevel != DangerLevel.High) ||
+                !(Player.Instance.Mana > 200) || !sender.IsValidTarget(Settings.Misc.MaxInterrupterRange))
+                return;
+
+            var rPrediction = R.GetPrediction(sender);
+
+            if (rPrediction.HitChance < HitChance.High && rPrediction.HitChance != HitChance.Collision)
+                return;
+
+            if (rPrediction.HitChance == HitChance.Collision)
             {
-                var rPrediction = R.GetPrediction(sender);
+                var polygon = new Geometry.Polygon.Rectangle(Player.Instance.Position,
+                    rPrediction.CastPosition, 120);
 
-                if (rPrediction.HitChance >= HitChance.High || rPrediction.HitChance == HitChance.Collision)
+                if (!EntityManager.Heroes.Enemies.Any(x => polygon.IsInside(x)))
                 {
-                    if (rPrediction.HitChance == HitChance.Collision)
-                    {
-                        var polygon = new Geometry.Polygon.Rectangle(Player.Instance.Position,
-                            rPrediction.CastPosition, 120);
-
-                        if (!EntityManager.Heroes.Enemies.Any(x => polygon.IsInside(x)))
-                        {
-                            R.Cast(rPrediction.CastPosition);
-                        }
-                    }
-                    else
-                    {
-                        R.Cast(rPrediction.CastPosition);
-                    }
+                    R.Cast(rPrediction.CastPosition);
                 }
+            }
+            else
+            {
+                R.Cast(rPrediction.CastPosition);
             }
         }
 

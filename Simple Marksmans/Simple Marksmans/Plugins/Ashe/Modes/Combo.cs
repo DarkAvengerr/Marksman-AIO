@@ -100,16 +100,9 @@ namespace Simple_Marksmans.Plugins.Ashe.Modes
 
                     var rPrediction = R.GetPrediction(target);
 
-                    if (damage > target.TotalHealthWithShields() && (rPrediction.HitChance >= HitChance.High || rPrediction.HitChance == HitChance.Collision))
+                    if (damage > target.TotalHealthWithShields() && (rPrediction.HitChance >= HitChance.High))
                     {
-                        if (rPrediction.HitChance == HitChance.Collision)
-                        {
-                            var polygon = new Geometry.Polygon.Rectangle(Player.Instance.Position, rPrediction.CastPosition, 120);
-                            if (!EntityManager.Heroes.Enemies.Any(x => polygon.IsInside(x)))
-                            {
-                                R.Cast(rPrediction.CastPosition);
-                            }
-                        } else R.Cast(rPrediction.CastPosition);
+                        R.Cast(rPrediction.CastPosition);
                     }
                 }
             }
