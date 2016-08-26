@@ -26,7 +26,11 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
+
+using System.Linq;
 using EloBuddy;
+using EloBuddy.SDK;
+using EloBuddy.SDK.Enumerations;
 
 namespace Simple_Marksmans.Plugins.Urgot.Modes
 {
@@ -34,7 +38,79 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
     {
         public static void Execute()
         {
-            Chat.Print("Combo mode !");
+            if (R.IsReady() && Settings.Combo.UseR && EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget(R.Range)) && Player.Instance.Mana > 300)
+            {
+                var target = TargetSelector.GetTarget(R.Range, DamageType.Physical);
+
+                if (target != null)
+                {
+                    var damage = Player.Instance.GetSpellDamage(target, SpellSlot.Q) * 2 + Player.Instance.GetAutoAttackDamage(target, true) * 2;
+                    if (damage > target.Health && target.HealthPercent > 40 && target.Position.CountEnemiesInRange(600) < 2 && Player.Instance.HealthPercent > target.HealthPercent && !target.IsUnderTurret())
+                    {
+                        R.Cast(target);
+                    }
+                    else if (Player.Instance.IsUnderTurret() && Player.Instance.HealthPercent > 25 && Player.Instance.HealthPercent > target.HealthPercent)
+                    {
+                        R.Cast(target);
+                    }
+                }
+            }
+
+            if (E.IsReady() && Settings.Combo.UseE)
+            {
+                var target = TargetSelector.GetTarget(E.Range, DamageType.Physical);
+
+                if (target != null)
+                {
+                    var ePrediction = E.GetPrediction(target);
+
+                    if (ePrediction.HitChance >= HitChance.High)
+                    {
+                        if (Player.Instance.Spellbook.GetSpell(SpellSlot.Q).CooldownExpires - Game.Time < 1 || target.Health < Player.Instance.GetSpellDamage(target, SpellSlot.E))
+                        {
+                            E.Cast(ePrediction.CastPosition);
+                        }
+                    }
+                }
+            }
+
+            if (Q.IsReady() && Settings.Combo.UseQ)
+            {
+                if (CorrosiveDebufTargets.Any(unit => unit is AIHeroClient && unit.IsValidTarget(1300)))
+                {
+                    foreach (
+                        var corrosiveDebufTarget in
+                            CorrosiveDebufTargets.Where(unit => unit is AIHeroClient && unit.IsValidTarget(1300)))
+                    {
+                        Q.Range = 1300;
+                        Q.AllowedCollisionCount = -1;
+                        Q.Cast(corrosiveDebufTarget.Position);
+                    }
+                }
+                else
+                {
+                    Q.Range = 900;
+                    Q.AllowedCollisionCount = 0;
+                    var target = TargetSelector.GetTarget(Q.Range, DamageType.Physical);
+                    if (target != null)
+                    {
+                        var qPrediciton = Q.GetPrediction(target);
+                        if (!qPrediciton.GetCollisionObjects<Obj_AI_Minion>().Any() && qPrediciton.HitChance >= HitChance.High)
+                        {
+                            Q.Cast(qPrediciton.CastPosition);
+                        }
+                    }
+                }
+            }
+
+            if (!W.IsReady() || !Settings.Combo.UseW || !(Player.Instance.Mana - 50 + 5*(E.Level - 1) > 220))
+                return;
+            {
+                if (Player.Instance.CountEnemiesInRange(Player.Instance.GetAutoAttackRange()) >= 1 || CorrosiveDebufTargets.Any(unit => unit is AIHeroClient && unit.IsValidTarget(1200)))
+                {
+                    W.Cast();
+                }
+            }
         }
     }
 }

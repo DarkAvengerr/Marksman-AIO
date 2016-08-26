@@ -27,11 +27,8 @@
 // //  ---------------------------------------------------------------------
 #endregion
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Urgot.Modes
 {
@@ -39,6 +36,18 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
     {
         public static void Execute()
         {
+            if (W.IsReady() )
+            {
+                var incomingDamage = IncomingDamage.GetIncomingDamage(Player.Instance);
+
+                if (incomingDamage/Player.Instance.TotalHealthWithShields()*100 > Settings.Misc.MinDamage ||
+                    incomingDamage > Player.Instance.Health)
+                {
+                    Console.WriteLine("casting W too much incoming damage...");
+                    W.Cast();
+                }
+            }
+
         }
     }
 }

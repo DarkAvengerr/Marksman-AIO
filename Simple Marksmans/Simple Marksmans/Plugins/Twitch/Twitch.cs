@@ -83,7 +83,7 @@ namespace Simple_Marksmans.Plugins.Twitch
             ColorPicker[0] = new ColorPicker("TwitchW", new ColorBGRA(243, 109, 160, 255));
             ColorPicker[1] = new ColorPicker("TwitchE", new ColorBGRA(255, 210, 54, 255));
             ColorPicker[2] = new ColorPicker("TwitchR", new ColorBGRA(241, 188, 160, 255));
-            ColorPicker[3] = new ColorPicker("TwitchHpBar", new ColorBGRA(241, 188, 160, 255));
+            ColorPicker[3] = new ColorPicker("TwitchHpBar", new ColorBGRA(255, 134, 0, 255));
 
             DamageIndicator.Initalize(System.Drawing.Color.FromArgb(ColorPicker[3].Color.R, ColorPicker[3].Color.G, ColorPicker[3].Color.B), (int)E.Range);
             DamageIndicator.DamageDelegate = HandleDamageIndicator;

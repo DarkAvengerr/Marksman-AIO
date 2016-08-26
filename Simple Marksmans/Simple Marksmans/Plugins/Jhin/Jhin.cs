@@ -151,7 +151,7 @@ namespace Simple_Marksmans.Plugins.Jhin
             ColorPicker[1] = new ColorPicker("JhinW", new ColorBGRA(177, 67, 191, 255));
             ColorPicker[2] = new ColorPicker("JhinE", new ColorBGRA(177, 67, 191, 255));
             ColorPicker[3] = new ColorPicker("JhinR", new ColorBGRA(177, 67, 191, 255));
-            ColorPicker[4] = new ColorPicker("JhinHpBar", new ColorBGRA(177, 67, 191, 255));
+            ColorPicker[4] = new ColorPicker("JhinHpBar", new ColorBGRA(255, 134, 0, 255));
 
             Orbwalker.OnPreAttack += (s, a) =>
             {
@@ -172,6 +172,8 @@ namespace Simple_Marksmans.Plugins.Jhin
                 System.Drawing.Color.FromArgb(ColorPicker[4].Color.R, ColorPicker[4].Color.G, ColorPicker[4].Color.B),
                 (int) W.Range);
             DamageIndicator.DamageDelegate = HandleDamageIndicator;
+
+            ColorPicker[4].OnColorChange += (a, b) => { DamageIndicator.Color = System.Drawing.Color.FromArgb(b.Color.A, b.Color.R, b.Color.G, b.Color.B); };
         }
 
         private static void Spellbook_OnCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
@@ -367,7 +369,7 @@ namespace Simple_Marksmans.Plugins.Jhin
             HarassMenu.AddSeparator(5);
 
             LaneClearMenu = MenuManager.Menu.AddSubMenu("Clear");
-            LaneClearMenu.AddGroupLabel("Lane clear settings for Tristana addon");
+            LaneClearMenu.AddGroupLabel("Lane clear settings for Jhin addon");
 
             LaneClearMenu.AddLabel("Basic settings :");
             LaneClearMenu.Add("Plugins.Jhin.LaneClearMenu.EnableLCIfNoEn", new CheckBox("Enable lane clear only if no enemies nearby"));

@@ -68,10 +68,10 @@ namespace Simple_Marksmans.Plugins.Tristana
             E = new Spell.Targeted(SpellSlot.E, 600);
             R = new Spell.Targeted(SpellSlot.R, 600);
 
-            ColorPicker = new ColorPicker[1];
+            ColorPicker = new ColorPicker[2];
 
             ColorPicker[0] = new ColorPicker("TristanaW", new ColorBGRA(243, 109, 160, 255));
-
+            ColorPicker[1] = new ColorPicker("TristanaHpBar", new ColorBGRA(255, 134, 0, 255));
             Text = new Text("", new Font("calibri", 15, FontStyle.Regular));
 
             Orbwalker.OnPreAttack += Orbwalker_OnPreAttack;
@@ -79,6 +79,8 @@ namespace Simple_Marksmans.Plugins.Tristana
 
             DamageIndicator.Initalize(System.Drawing.Color.FromArgb(ColorPicker[0].Color.R, ColorPicker[0].Color.G, ColorPicker[0].Color.B), (int)E.Range);
             DamageIndicator.DamageDelegate = HandleDamageIndicator;
+
+            ColorPicker[1].OnColorChange += (a, b) => { DamageIndicator.Color = System.Drawing.Color.FromArgb(b.Color.A, b.Color.R, b.Color.G, b.Color.B); };
         }
         
         private static void Orbwalker_OnPreAttack(AttackableUnit target, Orbwalker.PreAttackArgs args)
@@ -286,6 +288,15 @@ namespace Simple_Marksmans.Plugins.Tristana
                 else if (!b.NewValue)
                     DamageIndicator.DamageDelegate = null;
             };
+            DrawingsMenu.Add("Plugins.Tristana.DrawingsMenu.InfoColor", new CheckBox("Change color", false)).OnValueChange += (a, b) =>
+            {
+                if (!b.NewValue)
+                    return;
+
+                ColorPicker[1].Initialize(System.Drawing.Color.Aquamarine);
+                a.CurrentValue = false;
+            };
+            DrawingsMenu.AddLabel("Draws damage indicator and buff duration");
         }
 
         protected override void PermaActive()

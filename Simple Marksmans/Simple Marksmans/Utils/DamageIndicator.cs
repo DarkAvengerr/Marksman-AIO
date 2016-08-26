@@ -204,8 +204,8 @@ namespace Simple_Marksmans.Utils
 
                 }
 
-                var damageAfter = Math.Max(0, unit.Health - DamageDelegate(unit)) / unit.MaxHealth;
-                var currentHealth = unit.Health / unit.MaxHealth;
+                var damageAfter = Math.Max(0, unit.TotalHealthWithShields() - DamageDelegate(unit)) / unit.MaxHealth;
+                var currentHealth = unit.TotalHealthWithShields() / unit.MaxHealth;
 
                 var start = new Vector2(unit.HPBarPosition.X + xOffset + damageAfter * width, unit.HPBarPosition.Y + yOffset);
                 var end = new Vector2(unit.HPBarPosition.X + currentHealth * width, unit.HPBarPosition.Y + yOffset);

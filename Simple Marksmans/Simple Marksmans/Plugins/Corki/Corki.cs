@@ -130,7 +130,7 @@ namespace Simple_Marksmans.Plugins.Corki
             ColorPicker[0] = new ColorPicker("CorkiQ", new ColorBGRA(243, 109, 160, 255));
             ColorPicker[1] = new ColorPicker("CorkiW", new ColorBGRA(255, 210, 54, 255));
             ColorPicker[2] = new ColorPicker("CorkiR", new ColorBGRA(1, 109, 160, 255));
-            ColorPicker[3] = new ColorPicker("CorkiHpBar", new ColorBGRA(241, 188, 160, 255));
+            ColorPicker[3] = new ColorPicker("CorkiHpBar", new ColorBGRA(255, 134, 0, 255));
             
             PermaShow = new PermaShow("Corki PermaShow", new Vector2(200, 200));
             DamageIndicator.Initalize(Color.FromArgb(ColorPicker[3].Color.R, ColorPicker[3].Color.G, ColorPicker[3].Color.B), 1300);

@@ -35,15 +35,17 @@ namespace Simple_Marksmans.Plugins.Vayne.Modes
 {
     internal class LaneClear : Vayne
     {
+        public static bool CanILaneClear()
+        {
+            return !Settings.LaneClear.EnableIfNoEnemies || Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) <= Settings.LaneClear.AllowedEnemies;
+        }
+
         public static void Execute()
         {
             var laneMinions = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.Instance.Position,
     Player.Instance.GetAutoAttackRange() + 250).ToList();
 
-            if (!laneMinions.Any() &&
-                !(!Settings.LaneClear.EnableIfNoEnemies ||
-                  Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) >
-                  Settings.LaneClear.AllowedEnemies))
+            if (!laneMinions.Any() || !CanILaneClear())
                 return;
 
             if (Q.IsReady() && IsPostAttack && Settings.LaneClear.UseQToLaneClear &&

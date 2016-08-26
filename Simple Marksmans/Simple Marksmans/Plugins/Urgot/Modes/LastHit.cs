@@ -34,7 +34,6 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
     {
         public static void Execute()
         {
-            Chat.Print("LastHit mode !");
         }
     }
 }

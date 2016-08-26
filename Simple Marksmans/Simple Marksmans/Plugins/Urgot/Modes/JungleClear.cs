@@ -26,12 +26,10 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Urgot.Modes
 {
@@ -39,7 +37,57 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
     {
         public static void Execute()
         {
-            Chat.Print("JungleClear mode !");
+            var jungleMinions =
+                EntityManager.MinionsAndMonsters.GetJungleMonsters(Player.Instance.Position, Q.Range).ToList();
+
+            if (!jungleMinions.Any())
+                return;
+
+            if (Q.IsReady() && Settings.LaneClear.UseQInJungleClear &&
+                Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ)
+            {
+                if (Settings.LaneClear.UseQInLaneClear && CorrosiveDebufTargets.Any(unit => unit is Obj_AI_Minion && unit.IsValidTarget(1300)))
+                {
+                    if (CorrosiveDebufTargets.Any(unit => unit is Obj_AI_Minion && unit.IsValidTarget(1300)))
+                    {
+                        foreach (
+                            var minion in
+                                from minion in
+                                    CorrosiveDebufTargets.Where(
+                                        unit => unit is Obj_AI_Minion && unit.IsValidTarget(1300))
+                                select minion)
+                        {
+                            Q.Cast(minion.Position);
+                            break;
+                        }
+                    }
+                }
+                else if (Settings.LaneClear.UseQInLaneClear)
+                {
+                    foreach (var minion in from minion in jungleMinions
+                        let qPrediction = Q.GetPrediction(minion)
+                        where qPrediction.Collision == false
+                        select minion)
+                    {
+                        Q.Cast(minion);
+                    }
+                }
+            }
+
+
+            if (E.IsReady() && Settings.LaneClear.UseEInJungleClear &&
+                Player.Instance.ManaPercent >= Settings.LaneClear.MinManaE)
+            {
+                var farmPosition =
+                    EntityManager.MinionsAndMonsters.GetCircularFarmLocation(
+                        EntityManager.MinionsAndMonsters.Monsters.Where(
+                            x => x.IsValidTarget(E.Range) && x.HealthPercent > 10), 250, 900, 250, 1550);
+
+                if (farmPosition.HitNumber > 1)
+                {
+                    E.Cast(farmPosition.CastPosition);
+                }
+            }
         }
     }
 }

@@ -79,7 +79,7 @@ namespace Simple_Marksmans.Plugins.Kalista
             ColorPicker[0] = new ColorPicker("KalistaQ", new ColorBGRA(243, 109, 160, 255));
             ColorPicker[1] = new ColorPicker("KalistaE", new ColorBGRA(255, 210, 54, 255));
             ColorPicker[2] = new ColorPicker("KalistaR", new ColorBGRA(1, 109, 160, 255));
-            ColorPicker[3] = new ColorPicker("KalistaDamageIndicator", new ColorBGRA(1, 109, 160, 255));
+            ColorPicker[3] = new ColorPicker("KalistaDamageIndicator", new ColorBGRA(255, 134, 0, 255));
 
             DamageIndicator.Initalize(Color.FromArgb(ColorPicker[3].Color.A, ColorPicker[3].Color.R, ColorPicker[3].Color.G, ColorPicker[3].Color.B), true, Color.Azure, (int)E.Range);
             DamageIndicator.DamageDelegate = HandleDamageIndicator;

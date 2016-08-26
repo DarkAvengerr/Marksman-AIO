@@ -34,16 +34,18 @@ namespace Simple_Marksmans.Plugins.Corki.Modes
 {
     internal class LaneClear : Corki
     {
+        public static bool CanILaneClear()
+        {
+            return !Settings.LaneClear.EnableIfNoEnemies || Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) <= Settings.LaneClear.AllowedEnemies;
+        }
+
         public static void Execute()
         {
             var laneMinions = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy,
                 Player.Instance.Position,
                 Player.Instance.GetAutoAttackRange() + 250).ToList();
 
-            if (!laneMinions.Any() &&
-                !(!Settings.LaneClear.EnableIfNoEnemies ||
-                  Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) >
-                  Settings.LaneClear.AllowedEnemies))
+            if (!laneMinions.Any() || !CanILaneClear())
                 return;
             
             var minions = laneMinions;

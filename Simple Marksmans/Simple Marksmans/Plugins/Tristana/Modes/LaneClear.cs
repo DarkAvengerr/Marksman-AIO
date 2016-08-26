@@ -36,16 +36,18 @@ namespace Simple_Marksmans.Plugins.Tristana.Modes
 {
     internal class LaneClear : Tristana
     {
+        public static bool CanILaneClear()
+        {
+            return !Settings.LaneClear.EnableIfNoEnemies || Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) <= Settings.LaneClear.AllowedEnemies;
+        }
+
         public static void Execute()
         {
             var laneMinions =
                 EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.Instance.Position,
                     Player.Instance.GetAutoAttackRange()).ToList();
 
-            if (!laneMinions.Any() &&
-                !(!Settings.LaneClear.EnableIfNoEnemies ||
-                  Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) >
-                  Settings.LaneClear.AllowedEnemies))
+            if (!laneMinions.Any() || !CanILaneClear())
                 return;
 
             if (Q.IsReady() && Settings.LaneClear.UseQInLaneClear && IsPreAttack && laneMinions.Count > 3)

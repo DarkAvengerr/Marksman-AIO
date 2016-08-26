@@ -34,14 +34,17 @@ namespace Simple_Marksmans.Plugins.Sivir.Modes
 {
     internal class LaneClear : Sivir
     {
+        public static bool CanILaneClear()
+        {
+            return !Settings.LaneClear.EnableIfNoEnemies || Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) <= Settings.LaneClear.AllowedEnemies;
+        }
+
         public static void Execute()
         {
             var laneMinions = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.Instance.Position,
                     Q.Range).ToList();
 
-            if (!laneMinions.Any() && !(!Settings.LaneClear.EnableIfNoEnemies ||
-                                        Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) >
-                                        Settings.LaneClear.AllowedEnemies))
+            if (!laneMinions.Any() || !CanILaneClear())
                 return;
 
             if (Q.IsReady() && Settings.LaneClear.UseQInLaneClear &&
