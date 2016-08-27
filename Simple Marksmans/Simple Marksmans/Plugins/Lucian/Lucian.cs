@@ -471,8 +471,7 @@ namespace Simple_Marksmans.Plugins.Lucian
 
         protected override void PermaActive()
         {
-            if (Player.Instance.Spellbook.GetSpell(SpellSlot.R).Name.ToLowerInvariant() == "lucianrdisable")
-                IsCastingR = true;
+            IsCastingR = Player.Instance.Spellbook.GetSpell(SpellSlot.R).Name.ToLowerInvariant() == "lucianrdisable";
 
             Modes.PermaActive.Execute();
         }
