@@ -26,12 +26,10 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using EloBuddy;
+using EloBuddy.SDK;
+using EloBuddy.SDK.Enumerations;
 
 namespace Simple_Marksmans.Plugins.Lucian.Modes
 {
@@ -39,6 +37,19 @@ namespace Simple_Marksmans.Plugins.Lucian.Modes
     {
         public static void Execute()
         {
+            if (!R.IsReady() || !Settings.Combo.UseR || Player.Instance.Spellbook.GetSpell(SpellSlot.R).Name != "LucianR")
+                return;
+
+            var target = TargetSelector.GetTarget(R.Range, DamageType.Physical);
+
+            if (target == null || !Settings.Combo.RKeybind)
+                return;
+
+            var rPrediciton = R.GetPrediction(target);
+            if (rPrediciton.HitChance >= HitChance.Medium)
+            {
+                R.Cast(rPrediciton.CastPosition);
+            }
         }
     }
 }

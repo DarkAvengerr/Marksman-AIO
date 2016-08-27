@@ -109,7 +109,7 @@ namespace Simple_Marksmans.Plugins.KogMaw
 
         private static void Orbwalker_OnUnkillableMinion(Obj_AI_Base target, Orbwalker.UnkillableMinionArgs args)
         {
-            if (!Q.IsReady() || !(Player.Instance.Mana - 40 > 150) || Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo))
+            if (!Q.IsReady() || !(Player.Instance.Mana - 40 > 150) || !Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear))
                 return;
 
             var qPrediction = Q.GetPrediction(target);

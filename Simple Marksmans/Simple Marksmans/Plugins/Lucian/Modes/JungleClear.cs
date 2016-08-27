@@ -26,12 +26,11 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Lucian.Modes
 {
@@ -39,7 +38,24 @@ namespace Simple_Marksmans.Plugins.Lucian.Modes
     {
         public static void Execute()
         {
-            Chat.Print("JungleClear mode !");
+            var jungleMinions = EntityManager.MinionsAndMonsters.GetJungleMonsters(Player.Instance.Position, Player.Instance.GetAutoAttackRange()).ToList();
+
+            if (!jungleMinions.Any())
+                return;
+
+            if (!Q.IsReady() || !Settings.LaneClear.UseQInJungleClear ||
+                !(Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ) || jungleMinions.Count <= 1 ||
+                HasPassiveBuff || Player.Instance.HasSheenBuff())
+                return;
+
+            foreach (var jungleMinion in from jungleMinion in jungleMinions let rectangle = new Geometry.Polygon.Rectangle(Player.Instance.Position.To2D(),
+                Player.Instance.Position.Extend(jungleMinion, 900 - jungleMinion.Distance(Player.Instance)),
+                10) let count = jungleMinions.Count(
+                    minion => new Geometry.Polygon.Circle(minion.Position, jungleMinion.BoundingRadius).Points.Any(
+                        rectangle.IsInside)) where count >= 2 select jungleMinion)
+            {
+                Q.Cast(jungleMinion);
+            }
         }
     }
 }

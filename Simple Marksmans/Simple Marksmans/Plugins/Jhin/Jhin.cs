@@ -65,12 +65,12 @@ namespace Simple_Marksmans.Plugins.Jhin
             new Dictionary<int, Dictionary<float, float>>();
 
         private static readonly Dictionary<int, Dictionary<float, bool>> SpottedBuff =
-    new Dictionary<int, Dictionary<float, bool>>();
+            new Dictionary<int, Dictionary<float, bool>>();
 
         public static bool HasSpottedBuff(AIHeroClient unit)
         {
             if (SpottedBuff.ContainsKey(unit.NetworkId) &&
-                (Game.Time*1000 - SpottedBuff[unit.NetworkId].Select(x => x.Key).First() < 200))
+                (Game.Time*1000 - SpottedBuff[unit.NetworkId].Select(x => x.Key).First() < 100))
             {
                 return SpottedBuff[unit.NetworkId].FirstOrDefault().Value;
             }
@@ -492,52 +492,6 @@ namespace Simple_Marksmans.Plugins.Jhin
         {
             Orbwalker.DisableAttacking = IsCastingR;
             Orbwalker.DisableMovement = IsCastingR;
-
-            if (IsCastingR)
-            {
-                if (EntityManager.Heroes.Enemies.Any(x => x.Distance(Player.Instance) < 600))
-                {
-                    foreach (var enemy in EntityManager.Heroes.Enemies.Where(x => x.Distance(Player.Instance) < 600))
-                    {
-                        var health = enemy.Health;
-
-                        if (GetCurrentShootsRCount > 1)
-                        {
-                            for (var i = 1; i <= GetCurrentShootsRCount; i++)
-                            {
-                                if (i != GetCurrentShootsRCount)
-                                {
-                                    health -= Damage.GetRDamage(enemy);
-                                }
-                                else
-                                {
-                                    health -= Damage.GetRDamage(enemy, true);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            health -= Damage.GetRDamage(enemy, true);
-                        }
-
-                        if (enemy.Health - health < 100 && Player.Instance.HealthPercent > 25)
-                        {
-                            Orbwalker.DisableAttacking = true;
-                            Orbwalker.DisableMovement = true;
-                        }
-                        else
-                        {
-                            Orbwalker.DisableAttacking = false;
-                            Orbwalker.DisableMovement = false;
-                        }
-                    }
-                }
-                else
-                {
-                    Orbwalker.DisableAttacking = IsCastingR;
-                    Orbwalker.DisableMovement = IsCastingR;
-                }
-            }
 
             if (Player.Instance.Spellbook.GetSpell(SpellSlot.R).Name.ToLowerInvariant() == "jhinr" && !R.IsReady() &&
                 Player.Instance.Spellbook.GetSpell(SpellSlot.R).Name.ToLowerInvariant() != "jhinrshot")

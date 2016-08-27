@@ -94,8 +94,14 @@ namespace Simple_Marksmans.Plugins.Urgot
             ColorPicker[2] = new ColorPicker("UrgotR", new ColorBGRA(177, 67, 191, 255));
             ColorPicker[3] = new ColorPicker("UrgotHpBar", new ColorBGRA(255, 134, 0, 255));
 
+
             DamageIndicator.Initalize(Color.FromArgb(ColorPicker[3].Color.R, ColorPicker[3].Color.G, ColorPicker[3].Color.B));
             DamageIndicator.DamageDelegate = HandleDamageIndicator;
+
+            ColorPicker[3].OnColorChange +=
+                (a, b) =>
+                    DamageIndicator.Color =
+                        Color.FromArgb(ColorPicker[3].Color.R, ColorPicker[3].Color.G, ColorPicker[3].Color.B);
 
             PermaShow = new PermaShow("Urgot PermaShow", new Vector2(200, 200));
 
@@ -148,7 +154,7 @@ namespace Simple_Marksmans.Plugins.Urgot
 
         protected override void OnInterruptible(AIHeroClient sender, InterrupterEventArgs args)
         {
-            if (!R.IsReady() || !Settings.Misc.UseRToInterrupt || !sender.IsValidTarget(R.Range))
+            if (!R.IsReady() || !Settings.Misc.UseRToInterrupt || !sender.IsValidTarget(R.Range) || sender.IsUnderTurret())
                 return;
 
             if (args.Delay == 0)
@@ -160,7 +166,7 @@ namespace Simple_Marksmans.Plugins.Urgot
         protected override void OnGapcloser(AIHeroClient sender, GapCloserEventArgs args)
         {
             if (!R.IsReady() || !(args.End.Distance(Player.Instance) < 350) || !Settings.Misc.UseRAgainstGapclosers ||
-                !sender.IsValidTarget(R.Range))
+                !sender.IsValidTarget(R.Range) || sender.IsUnderTurret())
                 return;
 
             if (args.Delay == 0)

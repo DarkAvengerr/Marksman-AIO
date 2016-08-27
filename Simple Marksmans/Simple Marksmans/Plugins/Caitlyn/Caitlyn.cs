@@ -39,7 +39,6 @@ namespace Simple_Marksmans.Plugins.Caitlyn
     {
         static Caitlyn()
         {
-
         }
 
         protected override void OnDraw()

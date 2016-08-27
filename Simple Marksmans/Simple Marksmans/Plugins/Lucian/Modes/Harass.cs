@@ -26,12 +26,10 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Lucian.Modes
 {
@@ -39,7 +37,42 @@ namespace Simple_Marksmans.Plugins.Lucian.Modes
     {
         public static void Execute()
         {
-            Chat.Print("Harass mode !");
+            if (!Q.IsReady() || !Settings.Harass.UseQ || !(Player.Instance.ManaPercent >= Settings.Harass.MinManaQ))
+                return;
+
+            foreach (
+                var enemy in
+                    EntityManager.Heroes.Enemies.Where(
+                        x => x.IsValidTarget(900) && Settings.Harass.IsAutoHarassEnabledFor(x))
+                        .OrderByDescending(x => Player.Instance.GetSpellDamage(x, SpellSlot.Q)))
+            {
+                if (enemy.IsValidTarget(Q.Range))
+                {
+                    Q.Cast(enemy);
+                    return;
+                }
+
+                if (!enemy.IsValidTarget(900))
+                    continue;
+
+                foreach (
+                    var entity in
+                        from entity in
+                            EntityManager.MinionsAndMonsters.CombinedAttackable.Where(
+                                x => x.IsValidTarget(Q.Range))
+                        let pos =
+                            Player.Instance.Position.Extend(entity, 900 - Player.Instance.Distance(entity))
+                        let targetpos = Prediction.Position.PredictUnitPosition(enemy, 250)
+                        let rect = new Geometry.Polygon.Rectangle(entity.Position.To2D(), pos, 10)
+                        where
+                            new Geometry.Polygon.Circle(targetpos, enemy.BoundingRadius).Points.Any(
+                                rect.IsInside)
+                        select entity)
+                {
+                    Q.Cast(entity);
+                    return;
+                }
+            }
         }
     }
 }

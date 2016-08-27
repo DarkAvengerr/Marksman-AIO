@@ -28,10 +28,13 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using EloBuddy;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
+using EloBuddy.SDK.Spells;
 using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Jhin.Modes
@@ -61,7 +64,7 @@ namespace Simple_Marksmans.Plugins.Jhin.Modes
                     .Select(target => W.GetPrediction(target))
                     .Where(wPrediction => wPrediction.HitChance >= HitChance.High && !wPrediction.GetCollisionObjects<AIHeroClient>().Any()) let count = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(W.Range))
                         .Select(enemy => Prediction.Position.PredictUnitPosition(enemy, 1000))
-                        .Count(position => position.Distance(Player.Instance) < Player.Instance.GetAutoAttackRange()) where count < 2 select wPrediction)
+                        .Count(position => position.Distance(Player.Instance) < Player.Instance.GetAutoAttackRange()) where count < 3 select wPrediction)
                 {
                     W.Cast(wPrediction.CastPosition);
                     break;

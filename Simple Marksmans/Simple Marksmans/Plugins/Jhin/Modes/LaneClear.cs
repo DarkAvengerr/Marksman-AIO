@@ -64,7 +64,7 @@ namespace Simple_Marksmans.Plugins.Jhin.Modes
                         {
                             count++;
                             var lminion =
-                                kminion.Where(x => x.NetworkId != kMinion.NetworkId && x.Distance(kMinion) < 400)
+                                kminion.Where(x => x.NetworkId != kMinion.NetworkId && x.NetworkId != minion.NetworkId && x.Distance(kMinion) < 400)
                                     .OrderBy(x => x.Distance(kMinion));
 
                             if (lminion.Any())
@@ -75,7 +75,7 @@ namespace Simple_Marksmans.Plugins.Jhin.Modes
                                 {
                                     count++;
                                     var nminion =
-                                        lminion.Where(x => x.NetworkId != lMinion.NetworkId && x.Distance(lMinion) < 400)
+                                        lminion.Where(x => x.NetworkId != kMinion.NetworkId && x.NetworkId != minion.NetworkId && x.NetworkId != lMinion.NetworkId && x.Distance(lMinion) < 400)
                                             .OrderBy(x => x.Distance(lMinion));
                                     if (nminion.Any())
                                     {

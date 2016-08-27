@@ -26,15 +26,42 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
+
+using System.Linq;
 using EloBuddy;
+using EloBuddy.SDK;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Lucian.Modes
 {
     internal class LaneClear : Lucian
     {
+        public static bool CanILaneClear()
+        {
+            return !Settings.LaneClear.EnableIfNoEnemies || Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) <= Settings.LaneClear.AllowedEnemies;
+        }
+
         public static void Execute()
         {
-            Chat.Print("LaneClear mode !");
+            var laneMinions =
+                EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.Instance.Position, 1000).ToList();
+
+            if (!laneMinions.Any() || !CanILaneClear())
+                return;
+
+            if (!Q.IsReady() || !Settings.LaneClear.UseQInLaneClear ||
+                !(Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ) || laneMinions.Count <= 1 ||
+                HasPassiveBuff || Player.Instance.HasSheenBuff())
+                return;
+
+            foreach (var objAiMinion in from objAiMinion in laneMinions let rectangle = new Geometry.Polygon.Rectangle(Player.Instance.Position.To2D(),
+                Player.Instance.Position.Extend(objAiMinion, 900 - objAiMinion.Distance(Player.Instance)),
+                10) let count = laneMinions.Count(
+                    minion => new Geometry.Polygon.Circle(minion.Position, objAiMinion.BoundingRadius).Points.Any(
+                        rectangle.IsInside)) where count >= Settings.LaneClear.MinMinionsHitQ select objAiMinion)
+            {
+                Q.Cast(objAiMinion);
+            }
         }
     }
 }

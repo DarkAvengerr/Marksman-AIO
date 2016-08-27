@@ -40,7 +40,7 @@ namespace Simple_Marksmans.Plugins.KogMaw.Modes
             if (R.IsReady())
             {
                 var enemy = EntityManager.Heroes.Enemies.Where(
-                    x => x.IsValidTarget(R.Range) && (x.TotalHealthWithShields() - IncomingDamage.GetIncomingDamage(x) < Damage.GetEDamage(x)))
+                    x => x.IsValidTarget(R.Range) && (x.TotalHealthWithShields() - IncomingDamage.GetIncomingDamage(x) < Damage.GetRDamage(x)))
                     .OrderBy(TargetSelector.GetPriority).ThenByDescending(x=>R.GetPrediction(x).HitChancePercent).FirstOrDefault();
 
                 if (enemy != null)
