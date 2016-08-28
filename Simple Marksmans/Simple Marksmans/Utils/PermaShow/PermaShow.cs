@@ -26,6 +26,7 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,8 +36,13 @@ using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
 using SharpDX;
 
+
+// TODO  Recode permaashow and add caching
 namespace Simple_Marksmans.Utils.PermaShow
 {
+    /// <summary>
+    /// PLACEHOLDER
+    /// </summary>
     internal class PermaShow
     {
         private readonly List<ItemData> _permaShowItems = new List<ItemData>();
@@ -281,7 +287,7 @@ namespace Simple_Marksmans.Utils.PermaShow
 
             if (Drawing.Direct3DDevice.IsDisposed || CountItems() == 0)// || !Enabled)
                 return;
-
+            
             var lastSeparator = _separators.Last();
             var width = Position.X + GetMaxTextLength() + DefaultSpacing*2 - Position.X;
 
@@ -335,7 +341,7 @@ namespace Simple_Marksmans.Utils.PermaShow
                 rectangle.Draw();
             }
         }
-
+        
         private void UpdatePositions()
         {
             var itenNameXPosition = (int)Position.X + DefaultSpacing;
@@ -471,6 +477,7 @@ namespace Simple_Marksmans.Utils.PermaShow
 
                         _permaShowItems.Add(new ItemData
                         {
+                            UniqueItemName = text,
                             ItemType = ItemTypes.Bool,
                             ItemName = itemName,
                             ItemValue = itemValue,
@@ -550,6 +557,7 @@ namespace Simple_Marksmans.Utils.PermaShow
 
                             _permaShowItems.Add(new ItemData
                             {
+                                UniqueItemName = text,
                                 ItemType = ItemTypes.Bool,
                                 ItemName = itemName,
                                 ItemValue = itemValue,
@@ -590,6 +598,7 @@ namespace Simple_Marksmans.Utils.PermaShow
 
                             _permaShowItems.Add(new ItemData
                             {
+                                UniqueItemName = text,
                                 ItemType = ItemTypes.Integer,
                                 ItemName = itemName,
                                 ItemValue = itemValue,
@@ -620,6 +629,11 @@ namespace Simple_Marksmans.Utils.PermaShow
                 {
                     var data = value as BoolItemData;
 
+                    if (_permaShowItems.Any(x => x.UniqueItemName == text))
+                    {
+                        throw new Exception("Item already exist in PermaShow");
+                    }
+
                     if (!string.IsNullOrEmpty(data?.ItemName) && data.TextHeight > 1)
                     {
 
@@ -635,6 +649,7 @@ namespace Simple_Marksmans.Utils.PermaShow
 
                         _permaShowItems.Add(new ItemData
                         {
+                            UniqueItemName = text,
                             ItemType = ItemTypes.Bool,
                             ItemName = itemName,
                             ItemValue = itemValue,
@@ -697,6 +712,7 @@ namespace Simple_Marksmans.Utils.PermaShow
 
                         _permaShowItems.Add(new ItemData
                         {
+                            UniqueItemName = text,
                             ItemType = ItemTypes.String,
                             ItemName = itemName,
                             ItemValue = itemValue,
@@ -731,7 +747,7 @@ namespace Simple_Marksmans.Utils.PermaShow
 
         private void StringItemData_OnValueChangeEvent(object sender, StringChangeValueEventArgs args)
         {
-            var item = _permaShowItems.FirstOrDefault(e => e.ItemName.Message == args.ItemName);
+            var item = _permaShowItems.FirstOrDefault(e => e.UniqueItemName == args.ItemName);
 
             if (item == null)
                 return;
@@ -743,12 +759,14 @@ namespace Simple_Marksmans.Utils.PermaShow
 
         private void BoolItemData_OnValueChangeEvent(object sender, BoolChangeValueEventArgs args)
         {
-            var item = _permaShowItems.FirstOrDefault(e => e.ItemName.Message == args.ItemName);
+            var itemData = sender as BoolItemData;
 
+            var item = _permaShowItems.FirstOrDefault(e => e.UniqueItemName == args.ItemName);
+            
             if (item == null)
                 return;
 
-            var index = _permaShowItems.Where(x => x.ItemType == ItemTypes.Bool).ToList().FindIndex(data => item.ItemName == data.ItemName);
+            var index = _permaShowItems.FindIndex(data => item.ItemName == data.ItemName);
 
             if (args.Value && item.ItemValue.Message.Contains("Disabled"))
             {
@@ -829,7 +847,7 @@ namespace Simple_Marksmans.Utils.PermaShow
             {
                 if (_value != value)
                 {
-                    OnValueChangeEvent?.Invoke(this, new BoolChangeValueEventArgs { ItemName = ItemName, Value = value});
+                    OnValueChangeEvent?.Invoke(this, new BoolChangeValueEventArgs(ItemName, value));
                 }
                 _value = value;
             }
@@ -839,6 +857,7 @@ namespace Simple_Marksmans.Utils.PermaShow
 
         public delegate void OnValueChange(object sender, BoolChangeValueEventArgs args);
         public event OnValueChange OnValueChangeEvent;
+        
 
         public BoolItemData(string itemName, bool value, uint textHeight)
         {
@@ -851,8 +870,14 @@ namespace Simple_Marksmans.Utils.PermaShow
 
     internal class BoolChangeValueEventArgs : EventArgs
     {
-        public string ItemName { get; set; }
-        public bool Value { get; set; }
+        public string ItemName { get; private set; }
+        public bool Value { get;  private set; }
+
+        public BoolChangeValueEventArgs(string itemName, bool value)
+        {
+            ItemName = itemName;
+            Value = value;
+        }
     }
 
     internal class StringChangeValueEventArgs : EventArgs
@@ -891,6 +916,7 @@ namespace Simple_Marksmans.Utils.PermaShow
 
     internal class ItemData
     {
+        public string UniqueItemName { get; set; }
         public Text ItemName { get; set; }
         public Text ItemValue { get; set; }
         public ItemTypes ItemType { get; set; }

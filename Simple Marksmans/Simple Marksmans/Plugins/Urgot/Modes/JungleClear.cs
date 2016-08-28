@@ -58,7 +58,7 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
                                 select minion)
                         {
                             Q.Cast(minion.Position);
-                            break;
+                            return;
                         }
                     }
                 }
@@ -70,24 +70,25 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
                         select minion)
                     {
                         Q.Cast(minion);
+                        return;
                     }
                 }
             }
 
 
-            if (E.IsReady() && Settings.LaneClear.UseEInJungleClear &&
-                Player.Instance.ManaPercent >= Settings.LaneClear.MinManaE)
-            {
-                var farmPosition =
-                    EntityManager.MinionsAndMonsters.GetCircularFarmLocation(
-                        EntityManager.MinionsAndMonsters.Monsters.Where(
-                            x => x.IsValidTarget(E.Range) && x.HealthPercent > 10), 250, 900, 250, 1550);
+            if (!E.IsReady() || !Settings.LaneClear.UseEInJungleClear ||
+                !(Player.Instance.ManaPercent >= Settings.LaneClear.MinManaE))
+                return;
 
-                if (farmPosition.HitNumber > 1)
-                {
-                    E.Cast(farmPosition.CastPosition);
-                }
-            }
+            var farmPosition =
+                EntityManager.MinionsAndMonsters.GetCircularFarmLocation(
+                    EntityManager.MinionsAndMonsters.Monsters.Where(
+                        x => x.IsValidTarget(E.Range) && x.HealthPercent > 10), 250, 900, 250, 1550);
+
+            if (farmPosition.HitNumber <= 1)
+                return;
+
+            E.Cast(farmPosition.CastPosition);
         }
     }
 }

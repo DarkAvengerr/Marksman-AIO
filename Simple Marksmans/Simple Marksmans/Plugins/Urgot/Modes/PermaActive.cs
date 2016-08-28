@@ -27,7 +27,10 @@
 // //  ---------------------------------------------------------------------
 #endregion
 using System;
+using System.Linq;
 using EloBuddy;
+using EloBuddy.SDK;
+using EloBuddy.SDK.Enumerations;
 using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Urgot.Modes
@@ -36,18 +39,30 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
     {
         public static void Execute()
         {
-            if (W.IsReady() )
+            if (Settings.Misc.EnableKillsteal && !Player.Instance.IsRecalling())
             {
-                var incomingDamage = IncomingDamage.GetIncomingDamage(Player.Instance);
-
-                if (incomingDamage/Player.Instance.TotalHealthWithShields()*100 > Settings.Misc.MinDamage ||
-                    incomingDamage > Player.Instance.Health)
+                foreach (
+                    var qPrediction in
+                        EntityManager.Heroes.Enemies.Where(
+                            x => x.IsValidTarget(Q.Range) && !x.HasUndyingBuffA() && x.TotalHealthWithShields() < Player.Instance.GetSpellDamage(x, SpellSlot.Q))
+                            .Select(source => Q.GetPrediction(source))
+                            .Where(qPrediction => qPrediction.HitChance == HitChance.High))
                 {
-                    Console.WriteLine("casting W too much incoming damage...");
-                    W.Cast();
+                    Q.Cast(qPrediction.CastPosition);
+                    return;
                 }
             }
+            if (!W.IsReady())
+                return;
 
+            var incomingDamage = IncomingDamage.GetIncomingDamage(Player.Instance);
+
+            if (!(incomingDamage/Player.Instance.TotalHealthWithShields()*100 > Settings.Misc.MinDamage) &&
+                !(incomingDamage > Player.Instance.Health))
+                return;
+
+            Console.WriteLine("casting W too much incoming damage...");
+            W.Cast();
         }
     }
 }

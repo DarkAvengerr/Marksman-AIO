@@ -62,7 +62,7 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
                         Q.Range = 1300;
                         Q.AllowedCollisionCount = -1;
                         Q.Cast(corrosiveDebufTarget.Position);
-                        break;
+                        return;
                     }
                 }
                 else if (CanILaneClear() && Settings.LaneClear.UseQInLaneClear && CorrosiveDebufTargets.Any(unit => unit is Obj_AI_Minion && unit.IsValidTarget(1300)))
@@ -82,7 +82,7 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
                                 select minion)
                         {
                             Q.Cast(minion.Position);
-                            break;
+                            return;
                         }
                     }
                 }
@@ -93,6 +93,7 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
                                                                                         hpPrediction < Player.Instance.GetSpellDamage(minion, SpellSlot.Q) let qPrediction = Q.GetPrediction(minion) where qPrediction.Collision == false select minion).Where(minion => !minion.IsDead))
                     {
                         Q.Cast(minion);
+                        return;
                     }
                 }
             }
@@ -104,30 +105,35 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
             {
                 var target = TargetSelector.GetTarget(E.Range, DamageType.Physical);
 
-                if (target != null)
-                {
-                    var ePrediction = E.GetPrediction(target);
+                if (target == null)
+                    return;
 
-                    if (ePrediction.HitChance >= HitChance.High)
-                    {
-                        if (Player.Instance.Spellbook.GetSpell(SpellSlot.Q).CooldownExpires - Game.Time < 1 || target.Health < Player.Instance.GetSpellDamage(target, SpellSlot.E))
-                        {
-                            E.Cast(ePrediction.CastPosition);
-                        }
-                    }
-                } 
-            } else if (CanILaneClear() && Settings.LaneClear.UseEInLaneClear && Player.Instance.CountEnemyMinionsInRange(900) > 3)
-            {
-                var farmPosition =
-                    EntityManager.MinionsAndMonsters.GetCircularFarmLocation(
-                        EntityManager.MinionsAndMonsters.EnemyMinions.Where(
-                            x => x.IsValidTarget(E.Range) && x.HealthPercent > 10), 250, 900, 250, 1550);
+                var ePrediction = E.GetPrediction(target);
 
-                if (farmPosition.HitNumber > 2)
-                {
-                    E.Cast(farmPosition.CastPosition);
-                }
+                if (ePrediction.HitChance < HitChance.High)
+                    return;
+
+                if (!(Player.Instance.Spellbook.GetSpell(SpellSlot.Q).CooldownExpires - Game.Time < 1) &&
+                    !(target.Health < Player.Instance.GetSpellDamage(target, SpellSlot.E)))
+                    return;
+
+                E.Cast(ePrediction.CastPosition);
+                return;
             }
+
+            if (!CanILaneClear() || !Settings.LaneClear.UseEInLaneClear ||
+                Player.Instance.CountEnemyMinionsInRange(900) <= 3)
+                return;
+
+            var farmPosition =
+                EntityManager.MinionsAndMonsters.GetCircularFarmLocation(
+                    EntityManager.MinionsAndMonsters.EnemyMinions.Where(
+                        x => x.IsValidTarget(E.Range) && x.HealthPercent > 10), 250, 900, 250, 1550);
+
+            if (farmPosition.HitNumber <= 2)
+                return;
+
+            E.Cast(farmPosition.CastPosition);
         }
     }
 }

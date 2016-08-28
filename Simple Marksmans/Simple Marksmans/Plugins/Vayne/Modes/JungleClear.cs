@@ -41,14 +41,14 @@ namespace Simple_Marksmans.Plugins.Vayne.Modes
             if (!jungleMinions.Any())
                 return;
 
-            if (IsPostAttack && Q.IsReady() && Settings.LaneClear.UseQToJungleClear)
-            {
-                if (Player.Instance.Position.Extend(Game.CursorPos, 299)
-                    .IsInRange(Orbwalker.LastTarget, Player.Instance.GetAutoAttackRange()))
-                {
-                    Q.Cast(Player.Instance.Position.Extend(Game.CursorPos, 285).To3D());
-                }
-            }
+            if (!IsPostAttack || !Q.IsReady() || !Settings.LaneClear.UseQToJungleClear)
+                return;
+
+            if (!Player.Instance.Position.Extend(Game.CursorPos, 299)
+                .IsInRange(Orbwalker.LastTarget, Player.Instance.GetAutoAttackRange()))
+                return;
+
+            Q.Cast(Player.Instance.Position.Extend(Game.CursorPos, 285).To3D());
         }
     }
 }

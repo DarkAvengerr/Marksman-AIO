@@ -43,11 +43,10 @@ namespace Simple_Marksmans.Plugins.Lucian
 {
     internal class Lucian : ChampionPlugin
     {
-        public static Spell.Targeted Q { get; }
-        public static Spell.Skillshot W { get; }
-        public static Spell.Skillshot E { get; }
-        public static Spell.Skillshot R { get; }
-
+        protected static Spell.Targeted Q { get; }
+        protected static Spell.Skillshot W { get; }
+        protected static Spell.Skillshot E { get; }
+        protected static Spell.Skillshot R { get; }
 
         private static Menu ComboMenu { get; set; }
         private static Menu HarassMenu { get; set; }
@@ -55,10 +54,10 @@ namespace Simple_Marksmans.Plugins.Lucian
         private static Menu MiscMenu { get; set; }
         private static Menu DrawingsMenu { get; set; }
 
-        public static bool HasPassiveBuff
+        protected static bool HasPassiveBuff
             => Player.Instance.Buffs.Any(x => x.Name.ToLowerInvariant() == "lucianpassivebuff");
 
-        public static BuffInstance GetPassiveBuff
+        protected static BuffInstance GetPassiveBuff
             => Player.Instance.Buffs.FirstOrDefault(x => x.Name.ToLowerInvariant() == "lucianpassivebuff");
 
         private static readonly ColorPicker[] ColorPicker;
@@ -252,8 +251,10 @@ namespace Simple_Marksmans.Plugins.Lucian
                     else Console.WriteLine("[DEBUG] 1v1 not found positions...");
                 }
 
-                if (position != Vector3.Zero && EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget(900)))
-                    E.Cast(position);
+                if (position == Vector3.Zero || !EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget(900)))
+                    return;
+
+                E.Cast(position);
             }
             else if (Settings.Misc.EMode == 1)
             {
@@ -262,42 +263,47 @@ namespace Simple_Marksmans.Plugins.Lucian
                             ? Player.Instance.Position.Extend(Game.CursorPos, 420).To3D()
                             : Game.CursorPos;
 
-                if (!pos.IsVectorUnderEnemyTower())
+                if (pos.IsVectorUnderEnemyTower())
+                    return;
+
+                if (heroClient == null)
+                    return;
+
+                if (enemies == 1 && heroClient.HealthPercent + 15 < Player.Instance.HealthPercent)
                 {
-                    if (heroClient != null)
+                    if (heroClient.IsMelee && !pos.IsInRange(Prediction.Position.PredictUnitPosition(heroClient, 850), heroClient.GetAutoAttackRange() + 150))
                     {
-                        if (enemies == 1 && heroClient.HealthPercent + 15 < Player.Instance.HealthPercent)
-                        {
-                            if (heroClient.IsMelee && !pos.IsInRange(Prediction.Position.PredictUnitPosition(heroClient, 850), heroClient.GetAutoAttackRange() + 150))
-                            {
-                                E.Cast(pos);
-                            }
-                            else if (!heroClient.IsMelee)
-                            {
-                                E.Cast(pos);
-                            }
-                        }
-                        else if (enemies == 1 && !pos.IsInRange(Prediction.Position.PredictUnitPosition(heroClient, 850), heroClient.GetAutoAttackRange()))
-                        {
-                            E.Cast(pos);
-                        }
-                        else if (enemies == 2 && Player.Instance.CountAlliesInRange(850) >= 1)
-                        {
-                            E.Cast(pos);
-                        }
-                        else if (enemies >= 2)
-                        {
-                            if (
-                                !EntityManager.Heroes.Enemies.Any(
-                                    x =>
-                                        pos.IsInRange(Prediction.Position.PredictUnitPosition(x, 850),
-                                            x.IsMelee ? x.GetAutoAttackRange() + 150 : x.GetAutoAttackRange())))
-                            {
-                                E.Cast(pos);
-                            }
-                        }
+                        E.Cast(pos);
+                        return;
+                    }
+                    if (!heroClient.IsMelee)
+                    {
+                        E.Cast(pos);
+                        return;
                     }
                 }
+                if (enemies == 1 && !pos.IsInRange(Prediction.Position.PredictUnitPosition(heroClient, 850), heroClient.GetAutoAttackRange()))
+                {
+                    E.Cast(pos);
+                    return;
+                }
+                if (enemies == 2 && Player.Instance.CountAlliesInRange(850) >= 1)
+                {
+                    E.Cast(pos);
+                    return;
+                }
+                if (enemies < 2)
+                    return;
+
+                if (EntityManager.Heroes.Enemies.Any(
+                    x =>
+                        pos.IsInRange(Prediction.Position.PredictUnitPosition(x, 850),
+                            x.IsMelee ? x.GetAutoAttackRange() + 150 : x.GetAutoAttackRange())))
+                {
+                    return;
+                }
+
+                E.Cast(pos);
             }
         }
 

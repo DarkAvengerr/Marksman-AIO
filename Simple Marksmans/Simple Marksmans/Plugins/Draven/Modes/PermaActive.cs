@@ -26,12 +26,12 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
+using EloBuddy.SDK.Enumerations;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Draven.Modes
 {
@@ -39,6 +39,19 @@ namespace Simple_Marksmans.Plugins.Draven.Modes
     {
         public static void Execute()
         {
+            if (!R.IsReady() || !Settings.Combo.UseR || Player.Instance.Spellbook.GetSpell(SpellSlot.R).Name.ToLowerInvariant() == "dravenrdoublecast")
+                return;
+
+            var target = TargetSelector.GetTarget(Settings.Combo.RRangeKeybind, DamageType.Physical);
+
+            if (target == null || !Settings.Combo.RKeybind)
+                return;
+
+            var rPrediciton = R.GetPrediction(target);
+            if (rPrediciton.HitChance == HitChance.High)
+            {
+                R.Cast(rPrediciton.CastPosition);
+            }
         }
     }
 }

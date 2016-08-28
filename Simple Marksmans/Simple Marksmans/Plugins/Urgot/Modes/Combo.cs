@@ -48,10 +48,12 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
                     if (damage > target.Health && target.HealthPercent > 40 && target.Position.CountEnemiesInRange(600) < 2 && Player.Instance.HealthPercent > target.HealthPercent && !target.IsUnderTurret())
                     {
                         R.Cast(target);
+                        return;
                     }
-                    else if (Player.Instance.IsUnderTurret() && Player.Instance.HealthPercent > 25 && Player.Instance.HealthPercent > target.HealthPercent)
+                    if (Player.Instance.IsUnderTurret() && Player.Instance.HealthPercent > 25 && Player.Instance.HealthPercent > target.HealthPercent)
                     {
                         R.Cast(target);
+                        return;
                     }
                 }
             }
@@ -69,6 +71,7 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
                         if (Player.Instance.Spellbook.GetSpell(SpellSlot.Q).CooldownExpires - Game.Time < 1 || target.Health < Player.Instance.GetSpellDamage(target, SpellSlot.E))
                         {
                             E.Cast(ePrediction.CastPosition);
+                            return;
                         }
                     }
                 }
@@ -98,6 +101,7 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
                         if (!qPrediciton.GetCollisionObjects<Obj_AI_Minion>().Any() && qPrediciton.HitChance >= HitChance.High)
                         {
                             Q.Cast(qPrediciton.CastPosition);
+                            return;
                         }
                     }
                 }
@@ -106,10 +110,11 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
             if (!W.IsReady() || !Settings.Combo.UseW || !(Player.Instance.Mana - 50 + 5*(E.Level - 1) > 220))
                 return;
             {
-                if (Player.Instance.CountEnemiesInRange(Player.Instance.GetAutoAttackRange()) >= 1 || CorrosiveDebufTargets.Any(unit => unit is AIHeroClient && unit.IsValidTarget(1200)))
-                {
-                    W.Cast();
-                }
+                if (Player.Instance.CountEnemiesInRange(Player.Instance.GetAutoAttackRange()) < 1 &&
+                    !CorrosiveDebufTargets.Any(unit => unit is AIHeroClient && unit.IsValidTarget(1200)))
+                    return;
+
+                W.Cast();
             }
         }
     }

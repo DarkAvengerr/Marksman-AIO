@@ -59,7 +59,7 @@ namespace Simple_Marksmans.Plugins.Urgot
 
         private static readonly ColorPicker[] ColorPicker;
 
-        public static List<Obj_AI_Base> CorrosiveDebufTargets { get; private set; }=
+        public static List<Obj_AI_Base> CorrosiveDebufTargets { get; }=
             new List<Obj_AI_Base>();
 
         private static float _lastScanTick;
@@ -72,7 +72,7 @@ namespace Simple_Marksmans.Plugins.Urgot
             return CorrosiveDebufTargets.Contains(unit);
         }
 
-        public static PermaShow PermaShow { get; private set; }
+        public static PermaShow PermaShow { get; }
         public static BoolItemData AutoHarassBoolItemData { get; private set; }
 
         static Urgot()

@@ -26,12 +26,9 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
+
 using EloBuddy;
-using EloBuddy.SDK;
-using Simple_Marksmans.Interfaces;
 using Simple_Marksmans.Utils;
-using Color = System.Drawing.Color;
 
 namespace Simple_Marksmans.Plugins.Caitlyn
 {
@@ -47,17 +44,14 @@ namespace Simple_Marksmans.Plugins.Caitlyn
 
         protected override void OnInterruptible(AIHeroClient sender, InterrupterEventArgs args)
         {
-            throw new NotImplementedException();
         }
 
         protected override void OnGapcloser(AIHeroClient sender, GapCloserEventArgs args)
         {
-            throw new NotImplementedException();
         }
 
         protected override void CreateMenu()
         {
-            throw new NotImplementedException();
         }
 
         protected override void PermaActive()

@@ -51,40 +51,40 @@ namespace Simple_Marksmans.Plugins.Urgot.Modes
                         if (Player.Instance.Spellbook.GetSpell(SpellSlot.Q).CooldownExpires - Game.Time < 1 || target.Health < Player.Instance.GetSpellDamage(target, SpellSlot.E))
                         {
                             E.Cast(ePrediction.CastPosition);
+                            return;
                         }
                     }
                 }
             }
 
-            if (Q.IsReady() && Settings.Harass.UseQ && Player.Instance.ManaPercent >= Settings.Harass.MinManaQ)
+            if (!Q.IsReady() || !Settings.Harass.UseQ || !(Player.Instance.ManaPercent >= Settings.Harass.MinManaQ))
+                return;
+
+            if (CorrosiveDebufTargets.Any(unit => unit is AIHeroClient && unit.IsValidTarget(1300)))
             {
-                if (CorrosiveDebufTargets.Any(unit => unit is AIHeroClient && unit.IsValidTarget(1300)))
+                foreach (
+                    var corrosiveDebufTarget in
+                        CorrosiveDebufTargets.Where(unit => unit is AIHeroClient && unit.IsValidTarget(1300)))
                 {
-                    foreach (
-                        var corrosiveDebufTarget in
-                            CorrosiveDebufTargets.Where(unit => unit is AIHeroClient && unit.IsValidTarget(1300)))
-                    {
-                        Q.Range = 1300;
-                        Q.AllowedCollisionCount = -1;
-                        Q.Cast(corrosiveDebufTarget.Position);
-                    }
-                }
-                else
-                {
-                    Q.Range = 900;
-                    Q.AllowedCollisionCount = 0;
-                    var target = TargetSelector.GetTarget(Q.Range, DamageType.Physical);
-                    if (target != null)
-                    {
-                        var qPrediciton = Q.GetPrediction(target);
-                        if (!qPrediciton.GetCollisionObjects<Obj_AI_Minion>().Any() && qPrediciton.HitChance >= HitChance.High)
-                        {
-                            Q.Cast(qPrediciton.CastPosition);
-                        }
-                    }
+                    Q.Range = 1300;
+                    Q.AllowedCollisionCount = -1;
+                    Q.Cast(corrosiveDebufTarget.Position);
                 }
             }
+            else
+            {
+                Q.Range = 900;
+                Q.AllowedCollisionCount = 0;
+                var target = TargetSelector.GetTarget(Q.Range, DamageType.Physical);
+                if (target == null)
+                    return;
 
+                var qPrediciton = Q.GetPrediction(target);
+                if (qPrediciton.GetCollisionObjects<Obj_AI_Minion>().Any() || qPrediciton.HitChance < HitChance.High)
+                    return;
+
+                Q.Cast(qPrediciton.CastPosition);
+            }
         }
     }
 }
