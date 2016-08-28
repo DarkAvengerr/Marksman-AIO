@@ -27,7 +27,6 @@
 // //  ---------------------------------------------------------------------
 #endregion
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using EloBuddy;
@@ -481,8 +480,7 @@ namespace Simple_Marksmans.Plugins.Kalista
                     ColorPicker[3].Initialize(Color.Aquamarine);
                     a.CurrentValue = false;
                 };
-            DrawingsMenu.Add("Plugins.Kalista.DrawingsMenu.DamageIndicatorMode",
-                new ComboBox("Damage indicator mode", 0, "Only E damage", "Combo damage"));
+            DrawingsMenu.Add("Plugins.Kalista.DrawingsMenu.DamageIndicatorMode", new ComboBox("Damage indicator mode", 0, "Only E damage", "Combo damage"));
 
 
             MiscMenu = MenuManager.Menu.AddSubMenu("Misc");
@@ -502,16 +500,20 @@ namespace Simple_Marksmans.Plugins.Kalista
                 "Reduces calculated Rend damage by desired amount. Might help if Kalista uses E too early.");
             MiscMenu.AddSeparator(5);
 
-            var allies =
-                (from aiHeroClient in EntityManager.Heroes.Allies
+            var allies =(from aiHeroClient in EntityManager.Heroes.Allies
                     where !aiHeroClient.IsMe
                     select aiHeroClient.Hero.ToString()).ToList();
+
+            if (!allies.Any())
+                return;
 
             var soulBound = MiscMenu.Add("Plugins.Kalista.MiscMenu.SoulBoundHero", new ComboBox("Soulbound : ", allies));
             soulBound.OnValueChange += (a, b) =>
             {
-                SouldBoundAlliedHero = EntityManager.Heroes.Allies.Find(x => x.Hero.ToString() == soulBound.DisplayName);
+                SouldBoundAlliedHero =
+                    EntityManager.Heroes.Allies.Find(x => x.Hero.ToString() == soulBound.DisplayName);
             };
+
         }
 
         protected override void PermaActive()
