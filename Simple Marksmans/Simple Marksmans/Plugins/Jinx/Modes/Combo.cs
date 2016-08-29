@@ -60,7 +60,7 @@ namespace Simple_Marksmans.Plugins.Jinx.Modes
                         return;
                     }
                     if (HasMinigun &&  GetMinigunStacks >= 2 &&
-                        target.TotalHealthWithShields() < Player.Instance.GetAutoAttackDamage(target, true)*2.2f)
+                        target.TotalHealthWithShields() < Player.Instance.GetAutoAttackDamage(target, true)*2.2f && target.TotalHealthWithShields() > Player.Instance.GetAutoAttackDamage(target, true) * 2f)
                     {
                         Q.Cast();
                         return;

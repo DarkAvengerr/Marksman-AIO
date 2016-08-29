@@ -53,13 +53,11 @@ namespace Simple_Marksmans.Plugins.Jinx.Modes
                 return;
 
             var rocketsLanuncherMinions = laneMinions.Where(x =>
-                x.IsValidTarget(GetRealRocketLauncherRange()) &&
-                ((laneMinions.Count(
-                    k =>
-                        k.Distance(x) <= 150 &&
-                        (Prediction.Health.GetPrediction(k, 350) < Player.Instance.GetAutoAttackDamage(k)*1.1f)) > 1) ||
-                 (!Player.Instance.IsInAutoAttackRange(x) &&
-                  Prediction.Health.GetPrediction(x, 350) < Player.Instance.GetAutoAttackDamage(x, true)))).ToList();
+                x.IsValidTarget(GetRealRocketLauncherRange()) && 
+                ((laneMinions.Count(k =>
+                    k.Distance(x) <= 150 &&
+                    (Prediction.Health.GetPrediction(k, 350) < Player.Instance.GetAutoAttackDamage(k)*1.1f)) > 2) ||
+                    (Player.Instance.Distance(x) > GetRealMinigunRange() && Prediction.Health.GetPrediction(x, 350) < Player.Instance.GetAutoAttackDamage(x)*1.1f))).ToList();
                 
 
             if (HasMinigun)
@@ -67,7 +65,7 @@ namespace Simple_Marksmans.Plugins.Jinx.Modes
                 if (!(Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ) || !rocketsLanuncherMinions.Any() || !CanILaneClear())
                     return;
 
-                foreach (var objAiMinion in rocketsLanuncherMinions)
+                foreach (var objAiMinion in rocketsLanuncherMinions.OrderBy(x=>x.Health))
                 {
                     Q.Cast();
                     Orbwalker.ForcedTarget = objAiMinion;
