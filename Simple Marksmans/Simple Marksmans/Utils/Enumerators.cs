@@ -92,4 +92,11 @@ namespace Simple_Marksmans.Utils
         Targeted,
         Skillshot
     }
+
+    [Flags]
+    public enum ChampionTrackerFlags
+    {
+        VisibilityTracker = 1 << 0,
+        LongCastTimeTracker = 1 << 1
+    }
 }

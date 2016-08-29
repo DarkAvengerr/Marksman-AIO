@@ -117,14 +117,28 @@ namespace Simple_Marksmans
                     Player.Instance.HealthPercent <= hp &&
                     Player.Instance.CountEnemiesInRange(MenuManager.GapcloserScanRange) <= enemies)
                 {
-                    PluginInstance.OnGapcloser(enemy,
-                        new GapCloserEventArgs(args.Target, args.Slot,
-                            args.Target == null ? GapcloserTypes.Skillshot : GapcloserTypes.Targeted,
-                            args.Start, args.End,
-                            menu[
-                                "MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot + ".Delay",
-                                true], enemies, hp, Game.Time*1000));
-
+                    if (enemy.Hero == Champion.Nidalee && args.SData.Name.ToLowerInvariant() == "pounce")
+                    {
+                        PluginInstance.OnGapcloser(enemy,
+                            new GapCloserEventArgs(args.Target, args.Slot,
+                                args.Target == null ? GapcloserTypes.Skillshot : GapcloserTypes.Targeted,
+                                args.Start, args.End,
+                                menu[
+                                    "MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot +
+                                    ".Delay",
+                                    true], enemies, hp, Game.Time*1000));
+                    }
+                    else if(enemy.Hero != Champion.Nidalee)
+                    {
+                        PluginInstance.OnGapcloser(enemy,
+                            new GapCloserEventArgs(args.Target, args.Slot,
+                                args.Target == null ? GapcloserTypes.Skillshot : GapcloserTypes.Targeted,
+                                args.Start, args.End,
+                                menu[
+                                    "MenuManager.GapcloserMenu." + enemy.ChampionName + "." + gapcloser.SpellSlot +
+                                    ".Delay",
+                                    true], enemies, hp, Game.Time * 1000));
+                    }
                 }
             }
         }

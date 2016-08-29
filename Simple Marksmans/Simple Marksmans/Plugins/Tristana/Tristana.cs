@@ -59,8 +59,10 @@ namespace Simple_Marksmans.Plugins.Tristana
         private static bool _changingRangeScan;
         private static readonly Text Text;
 
-        public static bool IsPreAttack { get; private set; }
-        
+        protected static bool IsPreAttack { get; private set; }
+        protected static bool IsCatingW {get; set; }
+        protected static Vector3 WStartPos { get; set; }
+
         static Tristana()
         {
             Q = new Spell.Active(SpellSlot.Q);
@@ -77,7 +79,7 @@ namespace Simple_Marksmans.Plugins.Tristana
             Orbwalker.OnPreAttack += Orbwalker_OnPreAttack;
             Game.OnPostTick += a => IsPreAttack = false;
 
-            DamageIndicator.Initalize(System.Drawing.Color.FromArgb(ColorPicker[0].Color.R, ColorPicker[0].Color.G, ColorPicker[0].Color.B), (int)E.Range);
+            DamageIndicator.Initalize(System.Drawing.Color.FromArgb(ColorPicker[1].Color.R, ColorPicker[1].Color.G, ColorPicker[1].Color.B), 1300);
             DamageIndicator.DamageDelegate = HandleDamageIndicator;
 
             ColorPicker[1].OnColorChange += (a, b) => { DamageIndicator.Color = System.Drawing.Color.FromArgb(b.Color.A, b.Color.R, b.Color.G, b.Color.B); };
@@ -105,7 +107,9 @@ namespace Simple_Marksmans.Plugins.Tristana
             if (R.IsReady())
                 damge += Damage.GetRDamage(unit);
             if (HasExplosiveChargeBuff(unit))
-                damge += Damage.GetRDamage(unit);
+                damge += Damage.GetEPhysicalDamage(unit);
+
+            damge += Player.Instance.GetAutoAttackDamage(unit, true);
 
             return damge;
         }

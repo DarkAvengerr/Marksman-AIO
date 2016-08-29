@@ -39,7 +39,6 @@ namespace Simple_Marksmans.Plugins.Jinx.Modes
     {
         public static void Execute()
         {
-            Chat.Print("Flee mode !");
         }
     }
 }

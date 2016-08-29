@@ -26,12 +26,10 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Jinx.Modes
 {
@@ -39,7 +37,22 @@ namespace Simple_Marksmans.Plugins.Jinx.Modes
     {
         public static void Execute()
         {
-            Chat.Print("JungleClear mode !");
+            var jungleMinions = EntityManager.MinionsAndMonsters.GetJungleMonsters(Player.Instance.Position, Player.Instance.GetAutoAttackRange()).ToList();
+
+            if (!jungleMinions.Any())
+                return;
+
+            if (Settings.LaneClear.UseQInJungleClear)
+            {
+                if (HasMinigun && jungleMinions.Count > 1 && !IsPreAttack && jungleMinions.Count(x=> Orbwalker.GetTarget()?.Distance(x) < 150) > 1 &&
+                Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ)
+                {
+                    Q.Cast();
+                } else if (HasRocketLauncher)
+                {
+                    Q.Cast();
+                }
+            }
         }
     }
 }

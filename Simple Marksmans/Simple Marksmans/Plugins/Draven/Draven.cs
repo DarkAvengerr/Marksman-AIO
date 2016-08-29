@@ -560,7 +560,7 @@ namespace Simple_Marksmans.Plugins.Draven
                 new Slider("Min mana percentage ({0}%) to use Q", 50, 1));
             LaneClearMenu.AddSeparator(5);
 
-            LaneClearMenu.AddLabel("Blood Rush (Q) settings :");
+            LaneClearMenu.AddLabel("Blood Rush (W) settings :");
             LaneClearMenu.Add("Plugins.Draven.LaneClearMenu.UseWInLaneClear", new CheckBox("Use Q in Lane Clear"));
             LaneClearMenu.Add("Plugins.Draven.LaneClearMenu.UseWInJungleClear", new CheckBox("Use Q in Jungle Clear"));
             LaneClearMenu.Add("Plugins.Draven.LaneClearMenu.MinManaW",

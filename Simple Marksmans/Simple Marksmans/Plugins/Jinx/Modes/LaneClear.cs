@@ -26,15 +26,60 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
+
+using System.Linq;
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Jinx.Modes
 {
     internal class LaneClear : Jinx
     {
+        public static bool CanILaneClear()
+        {
+            return !Settings.LaneClear.EnableIfNoEnemies || Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) <= Settings.LaneClear.AllowedEnemies;
+        }
+
         public static void Execute()
         {
-            Chat.Print("LaneClear mode !");
+            if (!Settings.LaneClear.UseQInLaneClear || Player.Instance.IsUnderTurret())
+                return;
+
+            var laneMinions =
+                EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy,
+                    Player.Instance.Position, GetRealRocketLauncherRange() + 100).ToList();
+
+            if (!laneMinions.Any())
+                return;
+
+            var rocketsLanuncherMinions = laneMinions.Where(x =>
+                x.IsValidTarget(GetRealRocketLauncherRange()) &&
+                ((laneMinions.Count(
+                    k =>
+                        k.Distance(x) <= 150 &&
+                        (Prediction.Health.GetPrediction(k, 350) < Player.Instance.GetAutoAttackDamage(k)*1.1f)) > 1) ||
+                 (!Player.Instance.IsInAutoAttackRange(x) &&
+                  Prediction.Health.GetPrediction(x, 350) < Player.Instance.GetAutoAttackDamage(x, true)))).ToList();
+                
+
+            if (HasMinigun)
+            {
+                if (!(Player.Instance.ManaPercent >= Settings.LaneClear.MinManaQ) || !rocketsLanuncherMinions.Any() || !CanILaneClear())
+                    return;
+
+                foreach (var objAiMinion in rocketsLanuncherMinions)
+                {
+                    Q.Cast();
+                    Orbwalker.ForcedTarget = objAiMinion;
+                }
+            }
+            else if(HasRocketLauncher && !rocketsLanuncherMinions.Any())
+            {
+                if (!IsPreAttack)
+                {
+                    Q.Cast();
+                }
+            }
         }
     }
 }

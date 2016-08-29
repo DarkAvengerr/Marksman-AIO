@@ -28,10 +28,7 @@
 #endregion
 using System;
 using EloBuddy;
-using EloBuddy.SDK;
-using Simple_Marksmans.Interfaces;
 using Simple_Marksmans.Utils;
-using Color = System.Drawing.Color;
 
 namespace Simple_Marksmans.Plugins.Graves
 {

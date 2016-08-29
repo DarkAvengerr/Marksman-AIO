@@ -31,6 +31,7 @@ using System;
 using System.Linq;
 using EloBuddy;
 using EloBuddy.SDK;
+using EloBuddy.SDK.Enumerations;
 using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Tristana.Modes
@@ -48,20 +49,34 @@ namespace Simple_Marksmans.Plugins.Tristana.Modes
                 }
             }
 
+            if (W.IsReady() && IsCatingW)
+            {
+                W.Cast(Player.Instance.Position.Extend(WStartPos, WStartPos.Distance(Player.Instance) > 850 ? 850 : WStartPos.Distance(Player.Instance)).To3D());
+                IsCatingW = false;
+            }
+            
             if (W.IsReady() && Settings.Combo.UseW && R.IsReady() && Settings.Combo.UseR && Player.Instance.Mana - 160 > 90 && Player.Instance.HealthPercent > 25)
             {
                 var target = TargetSelector.GetTarget(900, DamageType.Physical);
 
-                if (target != null && target.CountAlliesInRange(500) == 0 && target.Distance(Player.Instance) > R.Range)
+                if (target != null && target.CountEnemiesInRange(500) == 0 && target.Distance(Player.Instance) > R.Range)
                 {
                     var damage = IncomingDamage.GetIncomingDamage(target) + Damage.GetRDamage(target) +
                                  Damage.GetEPhysicalDamage(target);
 
                     if (HasExplosiveChargeBuff(target) && target.Health < damage)
                     {
+
                         var wPrediction = W.GetPrediction(target);
-                        Console.WriteLine("[DEBUG] Casting W since {0} is killable", target.Hero);
-                        W.Cast(wPrediction.CastPosition);
+                        if (wPrediction.HitChance >= HitChance.Medium)
+                        {
+                            IsCatingW = true;
+                            Core.DelayAction(() => IsCatingW = false, 2000);
+                            WStartPos = Player.Instance.Position;
+
+                            W.Cast(target.ServerPosition);
+                            Console.WriteLine("[DEBUG] Casting W since {0} is killable", target.Hero);
+                        }
                     }
                 }
             }
@@ -102,7 +117,7 @@ namespace Simple_Marksmans.Plugins.Tristana.Modes
 
             if (R.IsReady() && Settings.Combo.UseR && Settings.Combo.UseRVsMelees && Player.Instance.HealthPercent < 20 && EntityManager.Heroes.Enemies.Any(x => x.IsMelee && x.IsValidTarget(300) && x.HealthPercent > 50))
             {
-                foreach (var enemy in EntityManager.Heroes.Enemies.Where(x => x.IsMelee && x.IsValidTarget(300) && x.HealthPercent > 50).OrderBy(TargetSelector.GetPriority).ThenBy(x=>x.Distance(Player.Instance)))
+                foreach (var enemy in EntityManager.Heroes.Enemies.Where(x => x.IsMelee && x.IsValidTarget(300) && x.HealthPercent > 50).OrderByDescending(TargetSelector.GetPriority).ThenBy(x=>x.Distance(Player.Instance)))
                 {
                     Console.WriteLine("[DEBUG] Casting R vs Melee");
                     R.Cast(enemy);

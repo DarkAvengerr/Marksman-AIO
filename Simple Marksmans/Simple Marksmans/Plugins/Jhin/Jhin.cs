@@ -165,7 +165,7 @@ namespace Simple_Marksmans.Plugins.Jhin
             };
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
             Game.OnPostTick += a => IsPreAttack = false;
-            ChampionTracker.Initialize();
+            ChampionTracker.Initialize(ChampionTrackerFlags.VisibilityTracker);
             Spellbook.OnCastSpell += Spellbook_OnCastSpell;
 
             DamageIndicator.Initalize(

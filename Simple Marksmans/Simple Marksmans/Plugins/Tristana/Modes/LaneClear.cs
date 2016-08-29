@@ -50,7 +50,7 @@ namespace Simple_Marksmans.Plugins.Tristana.Modes
             if (!laneMinions.Any() || !CanILaneClear())
                 return;
 
-            if (Q.IsReady() && Settings.LaneClear.UseQInLaneClear && IsPreAttack && laneMinions.Count > 3)
+            if (Q.IsReady() && Settings.LaneClear.UseQInLaneClear && IsPreAttack && laneMinions.Count >= 3)
             {
                 Q.Cast();
             }

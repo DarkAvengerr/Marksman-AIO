@@ -26,12 +26,10 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Jinx.Modes
 {
@@ -39,7 +37,23 @@ namespace Simple_Marksmans.Plugins.Jinx.Modes
     {
         public static void Execute()
         {
-            Chat.Print("Harass mode !");
+            if (!Settings.Harass.UseQ)
+                return;
+
+            if (HasMinigun)
+            {
+                foreach (var source in EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(GetRealRocketLauncherRange()) && !Player.Instance.IsInAutoAttackRange(x)).Where(source => IsPreAttack && Player.Instance.ManaPercent >= Settings.Harass.MinManaQ))
+                {
+                    Q.Cast();
+                    Orbwalker.ForcedTarget = source;
+                    return;
+                }
+            }
+            else if(!EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget(GetRealRocketLauncherRange()) && !Player.Instance.IsInAutoAttackRange(x)) && HasRocketLauncher)
+            {
+                Q.Cast();
+                Orbwalker.ForcedTarget = null;
+            }
         }
     }
 }
