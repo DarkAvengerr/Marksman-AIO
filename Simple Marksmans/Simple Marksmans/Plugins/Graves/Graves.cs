@@ -66,6 +66,9 @@ namespace Simple_Marksmans.Plugins.Graves
         protected static AIHeroClient DardochTrickTarget { get; set; }
 
         private static bool _changingRangeScan;
+        private static bool _rcasted;
+        private static bool _ecasted;
+        private static float _tick;
 
         protected static bool IsReloading
             => !Player.Instance.Buffs.Any(b => b.IsActive && b.Name.ToLowerInvariant() == "gravesbasicattackammo1");
@@ -119,10 +122,26 @@ namespace Simple_Marksmans.Plugins.Graves
 
         private static void Spellbook_OnCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            if (DardochTrick)
+            if (!DardochTrick)
+                return;
+
+            if (args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W)
+                args.Process = false;
+
+            if (args.Slot == SpellSlot.R)
             {
-                if (args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W)
-                    args.Process = false;
+                _rcasted = true;
+                _ecasted = false;
+
+                _tick = Game.Time * 1000;
+            }
+            if (args.Slot == SpellSlot.E)
+            {
+                _ecasted = true;
+
+                DardochTrick = false;
+                DardochTrickTarget = null;
+                _rcasted = false;
             }
         }
 
@@ -208,7 +227,7 @@ namespace Simple_Marksmans.Plugins.Graves
 
             if (hero != null && E.IsReady() && R.IsReady() && (Player.Instance.Mana - EMana - RMana > 0) && hero.CountEnemiesInRange(600) < 3 &&
                 !hero.HasUndyingBuffA() &&
-                (Player.Instance.HealthPercent > hero.HealthPercent) && !hero.Position.IsVectorUnderEnemyTower())
+                (Player.Instance.HealthPercent > 40) && !hero.Position.IsVectorUnderEnemyTower())
             {
                 var damage = Damage.GetQDamage(hero, true) +
                              Damage.GetWDamage(hero) +
@@ -226,7 +245,10 @@ namespace Simple_Marksmans.Plugins.Graves
                 {
                     if (DardochTrickTarget == null)
                         return;
-                    
+
+                    if (DardochTrickTarget.IsDead)
+                        return;
+
                     var t = EntityManager.Heroes.Enemies.FirstOrDefault(x => x.NetworkId == DardochTrickTarget.NetworkId);
 
                     if (t == null)
@@ -237,32 +259,9 @@ namespace Simple_Marksmans.Plugins.Graves
                     if (rPred.HitChancePercent < 55)
                         return;
 
-                    if(R.Cast(rPred.CastPosition))
-                        DardochTrick = true;
+                    DardochTrick = true;
 
-                    Core.DelayAction(() =>
-                    {
-                        if (DardochTrickTarget == null)
-                        {
-                            DardochTrick = false;
-                            DardochTrickTarget = null;
-                            return;
-                        }
-
-                        var k =
-                            EntityManager.Heroes.Enemies.FirstOrDefault(x => x.NetworkId == DardochTrickTarget.NetworkId);
-
-                        if (!E.IsReady() || k == null)
-                        {
-                            DardochTrick = false;
-                            DardochTrickTarget = null;
-                            return;
-                        }
-
-                        E.Cast(Player.Instance.Distance(k) > 420 ? Player.Instance.Position.Extend(k, 420).To3D() : k.ServerPosition);
-                        DardochTrick = false;
-                        DardochTrickTarget = null;
-                    }, 90 + Game.Ping / 2);
+                    R.Cast(rPred.CastPosition);
                 }, 250 + Game.Ping / 2);
             }
 
@@ -555,10 +554,43 @@ namespace Simple_Marksmans.Plugins.Graves
 
         protected override void ComboMode()
         {
-            if(DardochTrick)
-                return;
+            if (DardochTrick && !_ecasted)
+            {
+                if (Game.Time*1000 - _tick < 130)
+                    return;
 
+                if (DardochTrickTarget == null)
+                {
+                    Reset();
+                    return;
+                }
+
+                if (DardochTrickTarget.IsDead)
+                {
+                    Reset();
+                    return;
+                }
+
+                var k = EntityManager.Heroes.Enemies.FirstOrDefault(x => x.NetworkId == DardochTrickTarget.NetworkId);
+
+                if (!E.IsReady() || !_rcasted || k == null)
+                {
+                    Reset();
+                    return;
+                }
+
+                E.Cast(Player.Instance.Distance(k) > 420 ? Player.Instance.Position.Extend(k, 420).To3D() : k.ServerPosition);
+            }
             Modes.Combo.Execute();
+        }
+
+        private static void Reset()
+        {
+            DardochTrick = false;
+            DardochTrickTarget = null;
+            _rcasted = false;
+            _ecasted = true;
+            _tick = 0;
         }
 
         protected override void HarassMode()

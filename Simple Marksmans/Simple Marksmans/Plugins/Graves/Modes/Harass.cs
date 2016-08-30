@@ -27,11 +27,9 @@
 // //  ---------------------------------------------------------------------
 #endregion
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Graves.Modes
 {
@@ -39,6 +37,34 @@ namespace Simple_Marksmans.Plugins.Graves.Modes
     {
         public static void Execute()
         {
+            if (Q.IsReady() && Settings.Harass.UseQ && Player.Instance.ManaPercent >= Settings.Harass.MinManaQ)
+            {
+                var target = TargetSelector.GetTarget(Q.Range, DamageType.Physical);
+
+                if (target != null)
+                {
+                    var qPrediction = Q.GetPrediction(target);
+
+                    if (qPrediction.HitChancePercent >= 75)
+                    {
+                        var distToPlayer =
+                            Player.Instance.Position.Extend(qPrediction.CastPosition, 1000)
+                                .CutVectorNearWall(1000)
+                                .Distance(Player.Instance);
+
+                        if (target.Distance(Player.Instance) < distToPlayer && !Player.Instance.Position.IsWallBetween(qPrediction.CastPosition))
+                        {
+                            Q.Cast(qPrediction.CastPosition);
+                            Console.WriteLine("[DEBUG] Q cast on {0}", target.ChampionName);
+                        }
+                        else if (!Player.Instance.Position.IsWallBetween(qPrediction.CastPosition))
+                        {
+                            Q.Cast(qPrediction.CastPosition);
+                            Console.WriteLine("[DEBUG] Q cast on {0} v2", target.ChampionName);
+                        }
+                    }
+                }
+            }
         }
     }
 }

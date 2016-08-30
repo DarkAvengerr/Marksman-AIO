@@ -58,7 +58,7 @@ namespace Simple_Marksmans.Plugins.Graves.Modes
                                 .CutVectorNearWall(1000)
                                 .Distance(Player.Instance);
 
-                        if (target.Distance(Player.Instance) < distToPlayer)
+                        if (target.Distance(Player.Instance) < distToPlayer && !Player.Instance.Position.IsWallBetween(qPrediction.CastPosition))
                         {
                             Q.Cast(qPrediction.CastPosition);
                             Console.WriteLine("[DEBUG] Q cast on {0}", target.ChampionName);
