@@ -206,7 +206,7 @@ namespace Simple_Marksmans.Plugins.Graves
 
             var hero = R.GetTarget();
 
-            if (hero != null && E.IsReady() && R.IsReady() && (Player.Instance.Mana - EMana - RMana > 0) && hero.CountEnemiesInRange(600) < 2 &&
+            if (hero != null && E.IsReady() && R.IsReady() && (Player.Instance.Mana - EMana - RMana > 0) && hero.CountEnemiesInRange(600) < 3 &&
                 !hero.HasUndyingBuffA() &&
                 (Player.Instance.HealthPercent > hero.HealthPercent) && !hero.Position.IsVectorUnderEnemyTower())
             {
@@ -215,7 +215,7 @@ namespace Simple_Marksmans.Plugins.Graves
                              Damage.GetRDamage(hero, true) +
                              Player.Instance.GetAutoAttackDamage(hero) * 2;
 
-                if (hero.TotalHealthWithShields() > damage)
+                if (hero.TotalHealthWithShields() > damage && hero.TotalHealthWithShields() > Player.Instance.GetAutoAttackDamage(hero))
                 {
                     return;
                 }
@@ -237,8 +237,8 @@ namespace Simple_Marksmans.Plugins.Graves
                     if (rPred.HitChancePercent < 55)
                         return;
 
-                    R.Cast(rPred.CastPosition);
-                    DardochTrick = true;
+                    if(R.Cast(rPred.CastPosition))
+                        DardochTrick = true;
 
                     Core.DelayAction(() =>
                     {
@@ -263,7 +263,7 @@ namespace Simple_Marksmans.Plugins.Graves
                         DardochTrick = false;
                         DardochTrickTarget = null;
                     }, 90 + Game.Ping / 2);
-                }, 220 + Game.Ping / 2);
+                }, 250 + Game.Ping / 2);
             }
 
             if (target.GetType() != typeof(AIHeroClient) || target.IsMe || !Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo))//no idea why it invokes twice
