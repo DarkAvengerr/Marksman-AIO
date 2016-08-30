@@ -196,7 +196,7 @@ namespace Simple_Marksmans.Plugins.Graves
 
             var hero = (AIHeroClient) target;
             
-            if (E.IsReady() && R.IsReady() && Player.Instance.Mana - EMana - RMana > 0 && hero.CountAlliesInRange(600) == 0 &&
+            if (E.IsReady() && R.IsReady() && Player.Instance.Mana - EMana - RMana > 0 && hero.CountEnemiesInRange(600) == 0 &&
                 !hero.HasUndyingBuffA() &&
                 (Player.Instance.HealthPercent > hero.HealthPercent) && !hero.Position.IsVectorUnderEnemyTower())
             {
