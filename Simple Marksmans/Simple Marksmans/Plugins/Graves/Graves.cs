@@ -196,7 +196,7 @@ namespace Simple_Marksmans.Plugins.Graves
 
             var hero = (AIHeroClient) target;
             
-            if (E.IsReady() && R.IsReady() && Player.Instance.Mana - EMana - RMana > 0 && hero.CountEnemiesInRange(600) == 0 &&
+            if (E.IsReady() && R.IsReady() && (Player.Instance.Mana - EMana - RMana > 0) && hero.CountEnemiesInRange(600) < 2 &&
                 !hero.HasUndyingBuffA() &&
                 (Player.Instance.HealthPercent > hero.HealthPercent) && !hero.Position.IsVectorUnderEnemyTower())
             {
@@ -242,7 +242,7 @@ namespace Simple_Marksmans.Plugins.Graves
                         E.Cast(Player.Instance.Distance(k) > 420? Player.Instance.Position.Extend(k, 420).To3D() : k.ServerPosition);
                         DardochTrick = false;
                         DardochTrickTarget = null;
-                    },50 + Game.Ping/2);
+                    }, 90 + Game.Ping/2);
                 },180 + Game.Ping/2);
             }
 
