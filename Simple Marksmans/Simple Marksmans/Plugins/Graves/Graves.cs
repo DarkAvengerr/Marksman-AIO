@@ -114,6 +114,16 @@ namespace Simple_Marksmans.Plugins.Graves
             Orbwalker.OnPreAttack += Orbwalker_OnPreAttack;
             ChampionTracker.Initialize(ChampionTrackerFlags.LongCastTimeTracker);
             ChampionTracker.OnLongSpellCast += ChampionTracker_OnLongSpellCast;
+            Spellbook.OnCastSpell += Spellbook_OnCastSpell;
+        }
+
+        private static void Spellbook_OnCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
+        {
+            if (DardochTrick)
+            {
+                if (args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W)
+                    args.Process = false;
+            }
         }
 
         private static void ChampionTracker_OnLongSpellCast(object sender, OnLongSpellCastEventArgs e)
@@ -191,19 +201,19 @@ namespace Simple_Marksmans.Plugins.Graves
 
         private static void Orbwalker_OnPostAttack(AttackableUnit target, EventArgs args)
         {
-            if (target.GetType() != typeof(AIHeroClient) || target.IsMe || !Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo))//no idea why it invokes twice
+            if (!Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo))
                 return;
 
-            var hero = (AIHeroClient) target;
-            
-            if (E.IsReady() && R.IsReady() && (Player.Instance.Mana - EMana - RMana > 0) && hero.CountEnemiesInRange(600) < 2 &&
+            var hero = R.GetTarget();
+
+            if (hero != null && E.IsReady() && R.IsReady() && (Player.Instance.Mana - EMana - RMana > 0) && hero.CountEnemiesInRange(600) < 2 &&
                 !hero.HasUndyingBuffA() &&
                 (Player.Instance.HealthPercent > hero.HealthPercent) && !hero.Position.IsVectorUnderEnemyTower())
             {
                 var damage = Damage.GetQDamage(hero, true) +
                              Damage.GetWDamage(hero) +
                              Damage.GetRDamage(hero, true) +
-                             Player.Instance.GetAutoAttackDamage(hero)*2;
+                             Player.Instance.GetAutoAttackDamage(hero) * 2;
 
                 if (hero.TotalHealthWithShields() > damage)
                 {
@@ -214,21 +224,31 @@ namespace Simple_Marksmans.Plugins.Graves
 
                 Core.DelayAction(() =>
                 {
+                    if (DardochTrickTarget == null)
+                        return;
+                    
                     var t = EntityManager.Heroes.Enemies.FirstOrDefault(x => x.NetworkId == DardochTrickTarget.NetworkId);
 
                     if (t == null)
                         return;
-                    
+
                     var rPred = R.GetPrediction(t);
 
-                    if (rPred.HitChance != HitChance.High)
+                    if (rPred.HitChancePercent < 55)
                         return;
-                    
+
                     R.Cast(rPred.CastPosition);
                     DardochTrick = true;
 
                     Core.DelayAction(() =>
                     {
+                        if (DardochTrickTarget == null)
+                        {
+                            DardochTrick = false;
+                            DardochTrickTarget = null;
+                            return;
+                        }
+
                         var k =
                             EntityManager.Heroes.Enemies.FirstOrDefault(x => x.NetworkId == DardochTrickTarget.NetworkId);
 
@@ -239,12 +259,15 @@ namespace Simple_Marksmans.Plugins.Graves
                             return;
                         }
 
-                        E.Cast(Player.Instance.Distance(k) > 420? Player.Instance.Position.Extend(k, 420).To3D() : k.ServerPosition);
+                        E.Cast(Player.Instance.Distance(k) > 420 ? Player.Instance.Position.Extend(k, 420).To3D() : k.ServerPosition);
                         DardochTrick = false;
                         DardochTrickTarget = null;
-                    }, 90 + Game.Ping/2);
-                },180 + Game.Ping/2);
+                    }, 90 + Game.Ping / 2);
+                }, 220 + Game.Ping / 2);
             }
+
+            if (target.GetType() != typeof(AIHeroClient) || target.IsMe || !Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo))//no idea why it invokes twice
+                return;
 
             if (!E.IsReady() || !Settings.Combo.UseE || Settings.Misc.EUsageMode != 1 || DardochTrick || GetAmmoCount > 1)
                 return;
