@@ -155,6 +155,72 @@ namespace Simple_Marksmans.Utils
             return EntityManager.Turrets.Enemies.Any(x => x.IsValidTarget(900, true, vector));
         }
 
+        public static bool IsWallBetween(this Vector3 start, Vector3 end, int step = 25)
+        {
+            if(start == Vector3.Zero || end == Vector3.Zero || step < 1)
+                throw new ArgumentException("Invalid argument");
+
+            try
+            {
+                for (var i = 0; i < start.Distance(end); i += step)
+                {
+                    if (start.Extend(end, i).IsWall())
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+            return false;
+        }
+
+        public static Vector2 CutVectorNearWall(this Vector2 from, int range, int step = 25)
+        {
+            var distance = Player.Instance.Position.Distance(from);
+
+            var x = from.Shorten(Player.Instance.Position.To2D(), distance);
+
+            var output = new Vector2();
+
+            for (var i = 0; i < range; i += step)
+            {
+                var vec = Player.Instance.Position.Extend(x, i);
+
+                if (!vec.IsWall())
+                    continue;
+
+                output = vec;
+
+                break;
+            }
+            return output;
+        }
+
+        public static Vector3 CutVectorNearWall(this Vector3 from, int range, int step = 25)
+        {
+            var distance = Player.Instance.Position.Distance(from);
+
+            var x = from.To2D().Shorten(Player.Instance.Position.To2D(), distance);
+
+            var output = new Vector2();
+
+            for (var i = 0; i < range; i += step)
+            {
+                var vec = Player.Instance.Position.Extend(x, i);
+
+                if (!vec.IsWall())
+                    continue;
+
+                output = vec;
+
+                break;
+            }
+            return output.To3D();
+        }
+
         public static Vector2[] SortVectorsByDistance(Vector2[] array, Vector2 point)
         {
             if (array.Length == 1)

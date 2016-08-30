@@ -26,12 +26,11 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EloBuddy;
+using EloBuddy.SDK;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Graves.Modes
 {
@@ -39,7 +38,45 @@ namespace Simple_Marksmans.Plugins.Graves.Modes
     {
         public static void Execute()
         {
-            Chat.Print("JungleClear mode !");
+            var jungleMinions = EntityManager.MinionsAndMonsters.GetJungleMonsters(Player.Instance.Position, 600).ToList();
+
+            if (!jungleMinions.Any())
+                return;
+
+            if (!Q.IsReady() || !Settings.LaneClear.UseQInJungleClear || (Player.Instance.ManaPercent < Settings.LaneClear.MinManaQ))
+                return;
+
+            var qMinions = jungleMinions.Where(x => x.IsValidTarget(Q.Range) && !Player.Instance.Position.IsWallBetween(x.Position)).ToList();
+            
+            if (!qMinions.Any())
+                return;
+
+            var last = 0;
+            Obj_AI_Minion lastMinion = null;
+
+            foreach (var minion in qMinions)
+            {
+                var area = new Geometry.Polygon.Rectangle(Player.Instance.Position,
+                    Player.Instance.Position.Extend(minion, Q.Range).To3D(), Q.Width);
+
+                var count = qMinions.Count(
+                    x => new Geometry.Polygon.Circle(x.Position, x.BoundingRadius).Points.Any(k  =>
+                        area.IsInside(k)));
+
+                if (count <= last)
+                    continue;
+
+                last = count;
+                lastMinion = minion;
+            }
+
+            if (last <= 0 || lastMinion == null)
+                return;
+
+            if (lastMinion.IsValidTarget(Q.Range))
+            {
+                Q.Cast(lastMinion);
+            }
         }
     }
 }

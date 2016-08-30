@@ -137,6 +137,10 @@ namespace Simple_Marksmans.Plugins.Jinx
         private static void Orbwalker_OnPreAttack(AttackableUnit target, Orbwalker.PreAttackArgs args)
         {
             IsPreAttack = true;
+
+            if (Orbwalker.ForcedTarget != null &&
+                !Orbwalker.ForcedTarget.IsValidTarget(Player.Instance.GetAutoAttackRange()))
+                args.Process = false;
         }
 
         protected override void OnDraw()
@@ -226,7 +230,7 @@ namespace Simple_Marksmans.Plugins.Jinx
             HarassMenu.AddGroupLabel("Harass mode settings for Jinx addon");
 
             HarassMenu.AddLabel("Switcheroo! (Q) settings :");
-            HarassMenu.Add("Plugins.Jinx.HarassMenu.UseQ", new CheckBox("Use Q"));
+            HarassMenu.Add("Plugins.Jinx.HarassMenu.UseQ", new CheckBox("Use Q", false));
             HarassMenu.Add("Plugins.Jinx.HarassMenu.MinManaQ", new Slider("Min mana percentage ({0}%) to use Q", 80, 1));
             HarassMenu.AddSeparator(5);
 

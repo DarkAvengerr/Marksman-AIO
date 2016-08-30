@@ -26,12 +26,9 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using EloBuddy;
+using EloBuddy.SDK;
 
 namespace Simple_Marksmans.Plugins.Graves.Modes
 {
@@ -39,6 +36,19 @@ namespace Simple_Marksmans.Plugins.Graves.Modes
     {
         public static void Execute()
         {
+            if (!R.IsReady() || !Settings.Combo.UseR)
+                return;
+
+            var target = TargetSelector.GetTarget(R.Range, DamageType.Physical);
+
+            if (target == null || !Settings.Combo.RKeybind)
+                return;
+
+            var rPrediciton = R.GetPrediction(target);
+            if (rPrediciton.HitChancePercent >= 65)
+            {
+                R.Cast(rPrediciton.CastPosition);
+            }
         }
     }
 }

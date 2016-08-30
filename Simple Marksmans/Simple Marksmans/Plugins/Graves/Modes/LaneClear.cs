@@ -26,15 +26,64 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
+
+using System.Linq;
 using EloBuddy;
+using EloBuddy.SDK;
+using Simple_Marksmans.Utils;
 
 namespace Simple_Marksmans.Plugins.Graves.Modes
 {
     internal class LaneClear : Graves
     {
+        public static bool CanILaneClear()
+        {
+            return !Settings.LaneClear.EnableIfNoEnemies || Player.Instance.CountEnemiesInRange(Settings.LaneClear.ScanRange) <= Settings.LaneClear.AllowedEnemies;
+        }
+
         public static void Execute()
         {
-            Chat.Print("LaneClear mode !");
+            var laneMinions =
+                EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.Instance.Position, 1000).ToList();
+
+            if (!laneMinions.Any() || !CanILaneClear())
+                return;
+
+            if (!Q.IsReady() || !Settings.LaneClear.UseQInLaneClear ||
+                (Player.Instance.ManaPercent < Settings.LaneClear.MinManaQ) || Player.Instance.IsUnderTurret())
+                return;
+
+            var qMinions = laneMinions.Where(x => x.IsValidTarget(Q.Range) && !Player.Instance.Position.IsWallBetween(x.Position)).ToList();
+
+            if (!qMinions.Any())
+                return;
+
+            var last = 0;
+            Obj_AI_Minion lastMinion = null;
+
+            foreach (var minion in qMinions)
+            {
+                var area = new Geometry.Polygon.Rectangle(Player.Instance.Position,
+                    Player.Instance.Position.Extend(minion, Q.Range).To3D(), Q.Width);
+
+                var count = qMinions.Count(
+                    x => new Geometry.Polygon.Circle(x.Position, x.BoundingRadius).Points.Any(k =>
+                        area.IsInside(k)));
+
+                if (count <= last)
+                    continue;
+
+                last = count;
+                lastMinion = minion;
+            }
+
+            if (last <= 0 || lastMinion == null)
+                return;
+
+            if (last >= Settings.LaneClear.MinMinionsHitQ && lastMinion.IsValidTarget(Q.Range))
+            {
+                Q.Cast(lastMinion);
+            }
         }
     }
 }
