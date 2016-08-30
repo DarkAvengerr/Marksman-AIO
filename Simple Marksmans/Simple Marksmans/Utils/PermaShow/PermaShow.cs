@@ -26,7 +26,6 @@
 // //  </summary>
 // //  ---------------------------------------------------------------------
 #endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,27 +35,22 @@ using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
 using SharpDX;
 
-
-// TODO  Recode permaashow and add caching
 namespace Simple_Marksmans.Utils.PermaShow
 {
-    /// <summary>
-    /// PLACEHOLDER
-    /// </summary>
     internal class PermaShow
     {
         private readonly List<ItemData> _permaShowItems = new List<ItemData>();
         private readonly List<SeparatorData> _separators = new List<SeparatorData>();
         private readonly List<SeparatorData> _underlines = new List<SeparatorData>();
         private readonly List<MenuItem> _menuItems = new List<MenuItem>();
- 
+
         private readonly Text _headerText;
 
         public bool IsMoving { get; private set; }
         private readonly Vector2 _defaultPosition = new Vector2(190, 90);
 
         public Vector2 Position { get; set; }
-        
+
         public ColorBGRA BackgroundColor { get; set; } = new ColorBGRA(14, 19, 20, 215);
         public ColorBGRA SeparatorColor { get; set; } = new ColorBGRA(16, 29, 29, 255);
         public ColorBGRA EnabledUnderlineColor { get; set; } = new ColorBGRA(173, 255, 47, 255);
@@ -124,7 +118,7 @@ namespace Simple_Marksmans.Utils.PermaShow
 
             }, 2500);
         }
-        
+
         private void CreateMenu()
         {
             Menu.Add("Enable", new CheckBox("Enable PermaShow", false));
@@ -137,16 +131,16 @@ namespace Simple_Marksmans.Utils.PermaShow
         private void Game_OnWndProc(WndEventArgs args)
         {
             if (!Enabled)
-               return;
+                return;
 
             // ReSharper disable once SwitchStatementMissingSomeCases
             switch (args.Msg)
             {
-                case (uint) WindowMessages.LeftButtonDown:
+                case (uint)WindowMessages.LeftButtonDown:
                     if (IsPositionOnPermaShow(Game.CursorPos2D))
                         IsMoving = true;
                     break;
-                case (uint) WindowMessages.LeftButtonUp:
+                case (uint)WindowMessages.LeftButtonUp:
                     IsMoving = false;
                     break;
             }
@@ -154,9 +148,9 @@ namespace Simple_Marksmans.Utils.PermaShow
 
         private void Game_OnTick(EventArgs args)
         {
-            if(!Enabled)
+            if (!Enabled)
                 return;
-            
+
             if (IsMoving)
             {
                 Position = Game.CursorPos2D;
@@ -209,7 +203,7 @@ namespace Simple_Marksmans.Utils.PermaShow
                 {
                     case ItemTypes.Bool:
 
-                        var index = _permaShowItems.Where(x=>x.ItemType == ItemTypes.Bool).ToList().FindIndex(data => re.ItemName == data.ItemName);
+                        var index = _permaShowItems.Where(x => x.ItemType == ItemTypes.Bool).ToList().FindIndex(data => re.ItemName == data.ItemName);
 
                         if (menuData[item.MenuItemName] && re.ItemValue.Message.Contains("Disabled"))
                         {
@@ -274,12 +268,12 @@ namespace Simple_Marksmans.Utils.PermaShow
 
         private int GetMaxTextLength()
         {
-            var a = (int)(GetMaxItemNameTextLength() + GetMaxItemValueTextLength() + DefaultSpacing*1.25f);
+            var a = (int)(GetMaxItemNameTextLength() + GetMaxItemValueTextLength() + DefaultSpacing * 1.25f);
             var b = _headerText.GetTextRectangle().Width;
 
             return a > b ? a : b;
         }
-        
+
         private void Drawing_OnDraw(EventArgs args)
         {
             if (!Enabled || Opacity == 0)
@@ -287,22 +281,22 @@ namespace Simple_Marksmans.Utils.PermaShow
 
             if (Drawing.Direct3DDevice.IsDisposed || CountItems() == 0)// || !Enabled)
                 return;
-            
-            var lastSeparator = _separators.Last();
-            var width = Position.X + GetMaxTextLength() + DefaultSpacing*2 - Position.X;
 
-            var background = new Rectangle((int) width + 8,
+            var lastSeparator = _separators.Last();
+            var width = Position.X + GetMaxTextLength() + DefaultSpacing * 2 - Position.X;
+
+            var background = new Rectangle((int)width + 8,
                 new[]
                 {
                     new Vector2(Position.X + width/2, Position.Y),
                     new Vector2(Position.X + width/2, lastSeparator.Positions[0].Y + 5)
                 },
-                new ColorBGRA(BackgroundColor.R, BackgroundColor.G,BackgroundColor.B, (byte)Opacity));
+                new ColorBGRA(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, (byte)Opacity));
             background.Draw();
-            
-            _headerText.Font.DrawText(null, _headerText.Message, (int) Position.X + DefaultSpacing, (int) Position.Y,
+
+            _headerText.Font.DrawText(null, _headerText.Message, (int)Position.X + DefaultSpacing, (int)Position.Y,
                 new ColorBGRA(_headerText.Color.R, _headerText.Color.G, _headerText.Color.B, (byte)Opacity));
-            
+
             var separator = new Rectangle(3,
                 new[]
                 {
@@ -324,24 +318,24 @@ namespace Simple_Marksmans.Utils.PermaShow
             foreach (var re in _permaShowItems)
             {
                 re.ItemName.Font.DrawText(null, re.ItemName.Message, re.ItemName.X, re.ItemName.Y,
-                    new ColorBGRA(re.ItemName.Color.R, re.ItemName.Color.G, re.ItemName.Color.B, (byte) Opacity));
+                    new ColorBGRA(re.ItemName.Color.R, re.ItemName.Color.G, re.ItemName.Color.B, (byte)Opacity));
                 re.ItemValue.Font.DrawText(null, re.ItemValue.Message, re.ItemValue.X, re.ItemValue.Y,
-                    new ColorBGRA(re.ItemValue.Color.R, re.ItemValue.Color.G, re.ItemValue.Color.B, (byte) Opacity));
+                    new ColorBGRA(re.ItemValue.Color.R, re.ItemValue.Color.G, re.ItemValue.Color.B, (byte)Opacity));
             }
 
-            foreach (var rectangle in _separators.Select(sep => new Rectangle((int) sep.Width, sep.Positions,
-                new ColorBGRA(sep.Color.R, sep.Color.G, sep.Color.B, (byte) Opacity))))
+            foreach (var rectangle in _separators.Select(sep => new Rectangle((int)sep.Width, sep.Positions,
+                new ColorBGRA(sep.Color.R, sep.Color.G, sep.Color.B, (byte)Opacity))))
             {
                 rectangle.Draw();
             }
 
-            foreach (var rectangle in _underlines.Select(underline => new Rectangle((int) underline.Width, underline.Positions,
-                new ColorBGRA(underline.Color.R, underline.Color.G, underline.Color.B, (byte) Opacity))))
+            foreach (var rectangle in _underlines.Select(underline => new Rectangle((int)underline.Width, underline.Positions,
+                new ColorBGRA(underline.Color.R, underline.Color.G, underline.Color.B, (byte)Opacity))))
             {
                 rectangle.Draw();
             }
         }
-        
+
         private void UpdatePositions()
         {
             var itenNameXPosition = (int)Position.X + DefaultSpacing;
@@ -386,7 +380,7 @@ namespace Simple_Marksmans.Utils.PermaShow
                 }
 
                 _separators[index].Positions = new[] { new Vector2(Position.X, yPosition), new Vector2(xPositon, yPosition) };
-                Core.DelayAction(()=>_separators[index].Color = SeparatorColor, 500);
+                Core.DelayAction(() => _separators[index].Color = SeparatorColor, 500);
             }
 
 
@@ -410,7 +404,7 @@ namespace Simple_Marksmans.Utils.PermaShow
         {
             if (_permaShowItems.FirstOrDefault() == null)
             {
-                if (value.GetType() == typeof (BoolItemData))
+                if (value.GetType() == typeof(BoolItemData))
                 {
                     var data = value as BoolItemData;
 
@@ -419,7 +413,7 @@ namespace Simple_Marksmans.Utils.PermaShow
                         _separators.Add(new SeparatorData
                         {
                             Color = new ColorBGRA(16, 29, 29, 255),
-                            Positions = new[] {new Vector2(200, 130), new Vector2(500, 130)},
+                            Positions = new[] { new Vector2(200, 130), new Vector2(500, 130) },
                             Width = 2
                         });
 
@@ -433,7 +427,7 @@ namespace Simple_Marksmans.Utils.PermaShow
                             ItemName =
                                 new Text(data.ItemName, data.TextHeight, 215, 135, new ColorBGRA(109, 101, 64, 255)),
                             ItemValue = itemValue,
-                            Type = typeof (BoolItemData)
+                            Type = typeof(BoolItemData)
                         });
 
                         _underlines.Add(new SeparatorData
@@ -448,7 +442,7 @@ namespace Simple_Marksmans.Utils.PermaShow
                         _separators.Add(new SeparatorData
                         {
                             Color = new ColorBGRA(16, 29, 29, 255),
-                            Positions = new[] {new Vector2(200, 155), new Vector2(500, 155)},
+                            Positions = new[] { new Vector2(200, 155), new Vector2(500, 155) },
                             Width = 2
                         });
 
@@ -458,7 +452,7 @@ namespace Simple_Marksmans.Utils.PermaShow
                         return (T)Convert.ChangeType(t, typeof(BoolItemData));
                     }
                 }
-                if (value.GetType() == typeof (MenuItem))
+                if (value.GetType() == typeof(MenuItem))
                 {
                     var data = value as MenuItem;
 
@@ -467,21 +461,20 @@ namespace Simple_Marksmans.Utils.PermaShow
 
                         var menu = MenuManager.MenuValues;
 
-                        var itemName = new Text(data.ItemName, data.TextHeight, (int) Position.X + DefaultSpacing,
-                            (int) (Position.Y + _headerText.Height*2f), TextColor);
+                        var itemName = new Text(data.ItemName, data.TextHeight, (int)Position.X + DefaultSpacing,
+                            (int)(Position.Y + _headerText.Height * 2f), TextColor);
                         var itemValue = new Text(menu[data.MenuItemName] ? "[ ✓ ] Enabled" : "[ X ] Disabled",
                             data.TextHeight,
-                            (int) (Position.X + itemName.GetTextRectangle().Width + DefaultSpacing*2.5f),
-                            (int) (Position.Y + _headerText.Height*2f),
+                            (int)(Position.X + itemName.GetTextRectangle().Width + DefaultSpacing * 2.5f),
+                            (int)(Position.Y + _headerText.Height * 2f),
                             TextColor);
 
                         _permaShowItems.Add(new ItemData
                         {
-                            UniqueItemName = text,
                             ItemType = ItemTypes.Bool,
                             ItemName = itemName,
                             ItemValue = itemValue,
-                            Type = typeof (MenuItem)
+                            Type = typeof(MenuItem)
                         });
 
                         _menuItems.Add(new MenuItem(data.ItemName, data.MenuItemName, data.ItemType, data.TextHeight));
@@ -534,7 +527,7 @@ namespace Simple_Marksmans.Utils.PermaShow
             }
             else
             {
-                if (value.GetType() == typeof (MenuItem))
+                if (value.GetType() == typeof(MenuItem))
                 {
                     var data = value as MenuItem;
 
@@ -547,21 +540,20 @@ namespace Simple_Marksmans.Utils.PermaShow
 
                         if (data.ItemType == ItemTypes.Bool)
                         {
-                            itemName = new Text(data.ItemName, data.TextHeight, (int) Position.X + DefaultSpacing,
-                                (int) (lastItem.ItemName.Y + lastItem.ItemName.Height + 10), TextColor);
+                            itemName = new Text(data.ItemName, data.TextHeight, (int)Position.X + DefaultSpacing,
+                                (int)(lastItem.ItemName.Y + lastItem.ItemName.Height + 10), TextColor);
                             itemValue = new Text(menu[data.MenuItemName] ? "[ ✓ ] Enabled" : "[ X ] Disabled",
                                 data.TextHeight,
-                                (int) (Position.X + itemName.GetTextRectangle().Width + DefaultSpacing*2.5f),
-                                (int) (lastItem.ItemName.Y + lastItem.ItemName.Height + 10),
+                                (int)(Position.X + itemName.GetTextRectangle().Width + DefaultSpacing * 2.5f),
+                                (int)(lastItem.ItemName.Y + lastItem.ItemName.Height + 10),
                                 TextColor);
 
                             _permaShowItems.Add(new ItemData
                             {
-                                UniqueItemName = text,
                                 ItemType = ItemTypes.Bool,
                                 ItemName = itemName,
                                 ItemValue = itemValue,
-                                Type = typeof (MenuItem)
+                                Type = typeof(MenuItem)
                             });
 
                             _menuItems.Add(new MenuItem(data.ItemName, data.MenuItemName, data.ItemType, data.TextHeight));
@@ -588,21 +580,20 @@ namespace Simple_Marksmans.Utils.PermaShow
                         }
                         else if (data.ItemType == ItemTypes.Integer)
                         {
-                            itemName = new Text(data.ItemName, data.TextHeight, (int) Position.X + DefaultSpacing,
-                                (int) (lastItem.ItemName.Y + lastItem.ItemName.Height + 10), TextColor);
+                            itemName = new Text(data.ItemName, data.TextHeight, (int)Position.X + DefaultSpacing,
+                                (int)(lastItem.ItemName.Y + lastItem.ItemName.Height + 10), TextColor);
                             itemValue = new Text("Value : " + menu[data.MenuItemName, true],
                                 data.TextHeight,
-                                (int) (Position.X + itemName.GetTextRectangle().Width + DefaultSpacing*2.5f),
-                                (int) (lastItem.ItemName.Y + lastItem.ItemName.Height + 10),
+                                (int)(Position.X + itemName.GetTextRectangle().Width + DefaultSpacing * 2.5f),
+                                (int)(lastItem.ItemName.Y + lastItem.ItemName.Height + 10),
                                 TextColor);
 
                             _permaShowItems.Add(new ItemData
                             {
-                                UniqueItemName = text,
                                 ItemType = ItemTypes.Integer,
                                 ItemName = itemName,
                                 ItemValue = itemValue,
-                                Type = typeof (MenuItem)
+                                Type = typeof(MenuItem)
                             });
 
                             _menuItems.Add(new MenuItem(data.ItemName, data.MenuItemName, data.ItemType, data.TextHeight));
@@ -625,35 +616,30 @@ namespace Simple_Marksmans.Utils.PermaShow
                         });
                         return (T)Convert.ChangeType(this, typeof(MenuItem));
                     }
-                } else if (value.GetType() == typeof (BoolItemData))
+                }
+                else if (value.GetType() == typeof(BoolItemData))
                 {
                     var data = value as BoolItemData;
-
-                    if (_permaShowItems.Any(x => x.UniqueItemName == text))
-                    {
-                        throw new Exception("Item already exist in PermaShow");
-                    }
 
                     if (!string.IsNullOrEmpty(data?.ItemName) && data.TextHeight > 1)
                     {
 
                         var lastItem = _permaShowItems.Last();
 
-                        var itemName = new Text(data.ItemName, data.TextHeight, (int) Position.X + DefaultSpacing,
-                            (int) (lastItem.ItemName.Y + lastItem.ItemName.Height + 10), TextColor);
+                        var itemName = new Text(data.ItemName, data.TextHeight, (int)Position.X + DefaultSpacing,
+                            (int)(lastItem.ItemName.Y + lastItem.ItemName.Height + 10), TextColor);
                         var itemValue = new Text(data.Value ? "[ ✓ ] Enabled" : "[ X ] Disabled",
                             data.TextHeight,
-                            (int) (Position.X + itemName.GetTextRectangle().Width + DefaultSpacing*2.5f),
-                            (int) (lastItem.ItemName.Y + lastItem.ItemName.Height + 10),
+                            (int)(Position.X + itemName.GetTextRectangle().Width + DefaultSpacing * 2.5f),
+                            (int)(lastItem.ItemName.Y + lastItem.ItemName.Height + 10),
                             TextColor);
 
                         _permaShowItems.Add(new ItemData
                         {
-                            UniqueItemName = text,
                             ItemType = ItemTypes.Bool,
                             ItemName = itemName,
                             ItemValue = itemValue,
-                            Type = typeof (BoolItemData)
+                            Type = typeof(BoolItemData)
                         });
 
                         _underlines.Add(new SeparatorData
@@ -694,7 +680,7 @@ namespace Simple_Marksmans.Utils.PermaShow
                         return (T)Convert.ChangeType(t, typeof(BoolItemData));
                     }
                 }
-                else if (value.GetType() == typeof (StringItemData))
+                else if (value.GetType() == typeof(StringItemData))
                 {
                     var data = value as StringItemData;
 
@@ -702,21 +688,20 @@ namespace Simple_Marksmans.Utils.PermaShow
                     {
                         var lastItem = _permaShowItems.Last();
 
-                        var itemName = new Text(data.ItemName, data.TextHeight, (int) Position.X + DefaultSpacing,
-                            (int) (lastItem.ItemName.Y + lastItem.ItemName.Height + 10), TextColor);
+                        var itemName = new Text(data.ItemName, data.TextHeight, (int)Position.X + DefaultSpacing,
+                            (int)(lastItem.ItemName.Y + lastItem.ItemName.Height + 10), TextColor);
                         var itemValue = new Text(data.Value,
                             data.TextHeight,
-                            (int) (Position.X + itemName.GetTextRectangle().Width + DefaultSpacing*2.5f),
-                            (int) (lastItem.ItemName.Y + lastItem.ItemName.Height + 10),
+                            (int)(Position.X + itemName.GetTextRectangle().Width + DefaultSpacing * 2.5f),
+                            (int)(lastItem.ItemName.Y + lastItem.ItemName.Height + 10),
                             TextColor);
 
                         _permaShowItems.Add(new ItemData
                         {
-                            UniqueItemName = text,
                             ItemType = ItemTypes.String,
                             ItemName = itemName,
                             ItemValue = itemValue,
-                            Type = typeof (StringItemData)
+                            Type = typeof(StringItemData)
                         });
 
                         _separators.Add(new SeparatorData
@@ -742,12 +727,12 @@ namespace Simple_Marksmans.Utils.PermaShow
                 }
             }
             UpdatePositions();
-            return  (T)(object)null;
+            return (T)(object)null;
         }
 
         private void StringItemData_OnValueChangeEvent(object sender, StringChangeValueEventArgs args)
         {
-            var item = _permaShowItems.FirstOrDefault(e => e.UniqueItemName == args.ItemName);
+            var item = _permaShowItems.FirstOrDefault(e => e.ItemName.Message == args.ItemName);
 
             if (item == null)
                 return;
@@ -759,14 +744,12 @@ namespace Simple_Marksmans.Utils.PermaShow
 
         private void BoolItemData_OnValueChangeEvent(object sender, BoolChangeValueEventArgs args)
         {
-            var itemData = sender as BoolItemData;
+            var item = _permaShowItems.FirstOrDefault(e => e.ItemName.Message == args.ItemName);
 
-            var item = _permaShowItems.FirstOrDefault(e => e.UniqueItemName == args.ItemName);
-            
             if (item == null)
                 return;
 
-            var index = _permaShowItems.FindIndex(data => item.ItemName == data.ItemName);
+            var index = _permaShowItems.Where(x => x.ItemType == ItemTypes.Bool).ToList().FindIndex(data => item.ItemName == data.ItemName);
 
             if (args.Value && item.ItemValue.Message.Contains("Disabled"))
             {
@@ -847,7 +830,7 @@ namespace Simple_Marksmans.Utils.PermaShow
             {
                 if (_value != value)
                 {
-                    OnValueChangeEvent?.Invoke(this, new BoolChangeValueEventArgs(ItemName, value));
+                    OnValueChangeEvent?.Invoke(this, new BoolChangeValueEventArgs { ItemName = ItemName, Value = value });
                 }
                 _value = value;
             }
@@ -857,7 +840,6 @@ namespace Simple_Marksmans.Utils.PermaShow
 
         public delegate void OnValueChange(object sender, BoolChangeValueEventArgs args);
         public event OnValueChange OnValueChangeEvent;
-        
 
         public BoolItemData(string itemName, bool value, uint textHeight)
         {
@@ -870,14 +852,8 @@ namespace Simple_Marksmans.Utils.PermaShow
 
     internal class BoolChangeValueEventArgs : EventArgs
     {
-        public string ItemName { get; private set; }
-        public bool Value { get;  private set; }
-
-        public BoolChangeValueEventArgs(string itemName, bool value)
-        {
-            ItemName = itemName;
-            Value = value;
-        }
+        public string ItemName { get; set; }
+        public bool Value { get; set; }
     }
 
     internal class StringChangeValueEventArgs : EventArgs
@@ -886,12 +862,14 @@ namespace Simple_Marksmans.Utils.PermaShow
         public string Value { get; set; }
     }
 
-    internal class StringItemData: IPermaShowItem
+    internal class StringItemData : IPermaShowItem
     {
         public string ItemName { get; set; }
         private string _value;
 
-        public string Value { get { return _value; }
+        public string Value
+        {
+            get { return _value; }
             set
             {
                 if (_value != value)
@@ -916,7 +894,6 @@ namespace Simple_Marksmans.Utils.PermaShow
 
     internal class ItemData
     {
-        public string UniqueItemName { get; set; }
         public Text ItemName { get; set; }
         public Text ItemValue { get; set; }
         public ItemTypes ItemType { get; set; }

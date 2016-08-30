@@ -38,6 +38,7 @@ using EloBuddy.SDK.Rendering;
 using EloBuddy.SDK.Utils;
 using SharpDX;
 using Simple_Marksmans.Utils;
+using Simple_Marksmans.Utils.PermaShow;
 
 namespace Simple_Marksmans.Plugins.Lucian
 {
@@ -53,6 +54,9 @@ namespace Simple_Marksmans.Plugins.Lucian
         private static Menu LaneClearMenu { get; set; }
         private static Menu MiscMenu { get; set; }
         private static Menu DrawingsMenu { get; set; }
+
+        public static PermaShow PermaShow;
+        public static BoolItemData AutoHarassBoolItemData;
 
         protected static bool HasPassiveBuff
             => Player.Instance.Buffs.Any(x => x.Name.ToLowerInvariant() == "lucianpassivebuff");
@@ -90,6 +94,8 @@ namespace Simple_Marksmans.Plugins.Lucian
             Orbwalker.OnPreAttack += Orbwalker_OnPreAttack;
 
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
+
+            PermaShow = new PermaShow("Lucian PermaShow", new Vector2(200, 200));
         }
 
         private static void Orbwalker_OnPreAttack(AttackableUnit target, Orbwalker.PreAttackArgs args)
@@ -183,7 +189,7 @@ namespace Simple_Marksmans.Plugins.Lucian
 
             if (Settings.Misc.EMode == 0)
             {
-                if (heroClient != null && Player.Instance.HealthPercent > 50 && heroClient.HealthPercent < 30)
+                if (heroClient != null && Player.Instance.HealthPercent > 50 && heroClient.HealthPercent < 30 && heroClient.CountEnemiesInRange(600) < 2)
                 {
                     if (!Player.Instance.Position.Extend(Game.CursorPos, 420)
                         .To3D()
@@ -378,7 +384,14 @@ namespace Simple_Marksmans.Plugins.Lucian
             HarassMenu.AddGroupLabel("Harass mode settings for Lucian addon");
 
             HarassMenu.AddLabel("Piercing Light (Q) settings :");
-            HarassMenu.Add("Plugins.Lucian.HarassMenu.UseQ", new KeyBind("Enable auto harass", false, KeyBind.BindTypes.PressToggle, 'A'));
+            HarassMenu.Add("Plugins.Lucian.HarassMenu.UseQ", new KeyBind("Enable auto harass", false, KeyBind.BindTypes.PressToggle, 'A')).OnValueChange +=
+                (a, b) =>
+                {
+                    if (AutoHarassBoolItemData != null)
+                    {
+                        AutoHarassBoolItemData.Value = b.NewValue;
+                    }
+                };
             HarassMenu.Add("Plugins.Lucian.HarassMenu.MinManaQ", new Slider("Min mana percentage ({0}%) to use Q", 80, 1));
             HarassMenu.AddSeparator(5);
 
@@ -473,6 +486,7 @@ namespace Simple_Marksmans.Plugins.Lucian
             };
             DrawingsMenu.AddLabel("Draws damage indicator");
 
+            AutoHarassBoolItemData = PermaShow.AddItem("Auto harass", new BoolItemData("Enable Auto harass", Settings.Harass.UseQ, 14));
         }
 
         protected override void PermaActive()

@@ -85,7 +85,7 @@ namespace Simple_Marksmans.Plugins.Lucian.Modes
                                        Player.Instance.GetSpellDamage(target, SpellSlot.W) >
                                        target.TotalHealthWithShields()))
                 {
-                    if (Settings.Combo.IgnoreCollisionW && target.IsInAutoAttackRange(Player.Instance))
+                    if (Settings.Combo.IgnoreCollisionW && Player.Instance.IsInAutoAttackRange(target))
                     {
                         W.Cast(target);
                         return;
@@ -102,13 +102,13 @@ namespace Simple_Marksmans.Plugins.Lucian.Modes
             if (E.IsReady() && Settings.Combo.UseE && !IsCastingR && Settings.Misc.EUsageMode == 0 && !HasPassiveBuff &&
                 !Player.Instance.HasSheenBuff())
             {
-                var heroClient = TargetSelector.GetTarget(Player.Instance.GetAutoAttackRange() + 425,
+                var heroClient = TargetSelector.GetTarget(Player.Instance.GetAutoAttackRange() + 50,
                     DamageType.Physical);
                 var position = Vector3.Zero;
 
                 if (Settings.Misc.EMode == 0)
                 {
-                    if (heroClient != null && Player.Instance.HealthPercent > 50 && heroClient.HealthPercent < 30)
+                    if (heroClient != null && Player.Instance.HealthPercent > 50 && heroClient.HealthPercent < 30 && heroClient.CountEnemiesInRange(600) < 2)
                     {
                         if (!Player.Instance.Position.Extend(Game.CursorPos, 420)
                             .To3D()

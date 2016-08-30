@@ -58,7 +58,7 @@ namespace Simple_Marksmans.Plugins.Vayne.Modes
                     switch (Settings.Misc.QMode)
                     {
                         case 1:
-                            if (target != null && Player.Instance.HealthPercent > 50 && target.HealthPercent < 30)
+                            if (target != null && Player.Instance.HealthPercent > 50 && target.HealthPercent < 30 && target.CountEnemiesInRange(600) < 2)
                             {
                                 if (!Player.Instance.Position.Extend(Game.CursorPos, 285)
                                     .To3D()

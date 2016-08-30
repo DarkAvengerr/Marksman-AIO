@@ -132,7 +132,7 @@ namespace Simple_Marksmans.Plugins.Graves.Modes
 
                 if (Settings.Misc.EMode == 0)
                 {
-                    if (heroClient != null && Player.Instance.HealthPercent > 50 && heroClient.HealthPercent < 30)
+                    if (heroClient != null && Player.Instance.HealthPercent > 50 && heroClient.HealthPercent < 30 && heroClient.CountEnemiesInRange(600) < 2)
                     {
                         if (!Player.Instance.Position.Extend(Game.CursorPos, 420)
                             .To3D()
